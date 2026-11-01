@@ -4,6 +4,8 @@
 .aikit/*.tmp_*
 .aikit/*.corrupt_*
 .aikit/*.log
+# Local reforge review packets: regenerable audit evidence, not project memory
+.aikit/reforge.reviews/
 # lattice local databases and exports
 *.db
 *.db-wal
