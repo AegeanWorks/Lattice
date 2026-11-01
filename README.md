@@ -274,6 +274,7 @@ lattice/
 ├── REUSE.toml                <- Machine-readable SPDX metadata
 ├── README.md
 ├── COMMERCIAL.md
+├── assets/                   <- brand logo and social preview
 ├── pyproject.toml            <- package metadata and the `lattice` console script
 ├── start.py                  <- 1-click launcher for Web Research Studio and CLI
 ├── start.bat                 <- Windows batch launcher
