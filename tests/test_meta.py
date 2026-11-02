@@ -101,8 +101,8 @@ class MetaAnalysisTests(unittest.TestCase):
         p1, _ = repo.add_paper({"title": "Exercise Trial 1", "year": 2021, "study_type": "RCT"})
         p2, _ = repo.add_paper({"title": "Exercise Trial 2", "year": 2023, "study_type": "Cohort"})
 
-        c1 = repo.add_claim(p1.id, "Exercise increased neurogenesis by 40%.", "Quote 1", stance="supports", confidence=0.85)
-        c2 = repo.add_claim(p2.id, "Exercise enhanced hippocampal volume.", "Quote 2", stance="supports", confidence=0.75)
+        c1 = repo.add_claim(p1.id, "Exercise increased neurogenesis by 40%.", "Quote 1", stance="supports", confidence=0.85, locator="abstract:s1")
+        c2 = repo.add_claim(p2.id, "Exercise enhanced hippocampal volume.", "Quote 2", stance="supports", confidence=0.75, locator="abstract:s1")
 
         repo.add_edge(c1.id, q.id, "supports")
         repo.add_edge(c2.id, q.id, "supports")
@@ -118,7 +118,7 @@ class MetaAnalysisTests(unittest.TestCase):
         repo = Repository(conn)
         q = repo.add_question("Does light exposure reset circadian rhythm?")
         p, _ = repo.add_paper({"title": "Circadian Study", "year": 2024})
-        c = repo.add_claim(p.id, "Morning light advanced phase by 1.5 hours.", "Quote", stance="supports", confidence=0.8)
+        c = repo.add_claim(p.id, "Morning light advanced phase by 1.5 hours.", "Quote", stance="supports", confidence=0.8, locator="abstract:s1")
         # Add two edges to test deduplication and reversed direction
         repo.add_edge(f"question:{q.id}", f"claim:{c.id}", "supports")
         repo.add_edge(f"claim:{c.id}", f"question:{q.id}", "answers")

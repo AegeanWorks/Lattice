@@ -1200,8 +1200,8 @@ WEB_HTML = """<!DOCTYPE html>
               <input id="claim-conf" type="number" step="0.05" min="0" max="1" value="0.85">
             </div>
             <div style="flex:1">
-              <label>Locator</label>
-              <input id="claim-locator" placeholder="p. 4 / abstract:s1">
+              <label>Locator (required)</label>
+              <input id="claim-locator" placeholder="p. 4 / abstract:s1" required>
             </div>
           </div>
           <label>Link to Research Question (Optional)</label>
@@ -1574,7 +1574,7 @@ function renderClaims(claims) {
         </span>
       </div>
       <div style="font-size:0.88rem;font-weight:500">${esc(c.text)}</div>
-      <blockquote>&ldquo;${esc(c.quote)}&rdquo; ${c.locator ? `<span style="color:var(--muted)">(${esc(c.locator)})</span>` : ''}</blockquote>
+      <blockquote>&ldquo;${esc(c.quote)}&rdquo; <span style="color:var(--muted)">(${esc(c.locator || 'MISSING — fails check')})</span></blockquote>
       <button class="btn secondary sm" onclick="inspectGraph('${esc(c.id)}')">Subgraph</button>
     </div>
   `).join('');
@@ -1759,6 +1759,10 @@ async function createClaim() {
   const stance = document.getElementById('claim-stance').value;
   const confidence = Number(document.getElementById('claim-conf').value || 0.8);
   const locator = document.getElementById('claim-locator').value.trim();
+  if (!locator) {
+    notify('A locator is required (no locator, no entry) — e.g. abstract:s1', true);
+    return;
+  }
   const question = document.getElementById('claim-question').value;
   try {
     const res = await api('POST', '/api/claims', { paper, text, quote, stance, confidence, locator, question });
@@ -1805,9 +1809,9 @@ function showNodeDetail(ref, nodes) {
   } else if (type === 'claim') {
     body = `
       <div style="font-weight:600;margin-bottom:4px">${esc(node.assertion || node.text || '')}</div>
-      ${node.quote ? '<div style="color:var(--muted);font-style:italic;font-size:0.8rem;margin-bottom:4px;border-left:2px solid var(--border);padding-left:8px">"${esc(node.quote)}"</div>' : ''}
+      <div style="color:var(--muted);font-style:italic;font-size:0.8rem;margin-bottom:4px;border-left:2px solid var(--border);padding-left:8px">&ldquo;${esc(node.quote || 'MISSING — fails check')}&rdquo;</div>
       <div style="color:var(--muted);font-size:0.75rem">
-        ${node.locator ? 'Locator: ' + esc(node.locator) + ' &middot; ' : ''}
+        Locator: ${esc(node.locator || 'MISSING — fails check')} &middot;
         Confidence: ${node.confidence !== undefined ? node.confidence : 1.0}
         ${node.paper_id ? ' &middot; Paper: ' + esc(node.paper_id) : ''}
       </div>

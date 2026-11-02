@@ -19,7 +19,7 @@ def seed_graph(repository):
     """One paper, claim, question and edge as a diffing baseline."""
     paper, _ = repository.add_paper({"title": "Baseline Sleep Trial", "year": "2024"})
     claim = repository.add_claim(
-        paper.id, "Sleep improves memory.", "Sleep improves memory.", stance="supports")
+        paper.id, "Sleep improves memory.", "Sleep improves memory.", stance="supports", locator="abstract:s1")
     question = repository.add_question("Does sleep consolidate memory?")
     repository.add_edge(f"claim:{claim.id}", f"question:{question.id}", "supports")
     return paper, claim, question
@@ -89,7 +89,7 @@ class SnapshotDiffTests(unittest.TestCase):
         added_question = self.repository.add_question("Does caffeine impair memory?")
         added_claim = self.repository.add_claim(
             self.paper.id, "Caffeine impairs recall.", "Caffeine impairs recall.",
-            stance="contradicts")
+            stance="contradicts", locator="abstract:s1")
         self.repository.add_edge(f"claim:{added_claim.id}",
                                  f"question:{added_question.id}", "answers")
         newer_path = Path(self.directory.name) / "newer.jsonl"

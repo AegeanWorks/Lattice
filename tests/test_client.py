@@ -16,7 +16,7 @@ def seed(client: LatticeClient) -> tuple[dict, dict, dict]:
     paper = client.add_paper({"title": "Sleep and Memory Trial"})
     claim = client.add_claim(
         paper["paper"]["id"], "Sleep improves memory.", "Sleep improves memory.",
-        stance="supports", confidence=0.8)
+        stance="supports", confidence=0.8, locator="abstract:s1")
     client.add_edge(claim["claim"]["id"], question["question"]["id"], "supports")
     return question, paper, claim
 
@@ -117,7 +117,7 @@ class AsyncLatticeClientTests(unittest.IsolatedAsyncioTestCase):
         question = await self.client.add_question("Does async work?")
         paper = await self.client.add_paper({"title": "Async Trial"})
         claim = await self.client.add_claim(
-            paper["paper"]["id"], "Async works.", "Async works.", stance="mentions")
+            paper["paper"]["id"], "Async works.", "Async works.", stance="mentions", locator="abstract:s1")
         await self.client.add_edge(
             claim["claim"]["id"], question["question"]["id"], "answers")
         outline = await self.client.outline()
@@ -180,7 +180,7 @@ class ClientSafetyTests(unittest.TestCase):
             "compute_meta_analysis",
         }
         blocked = (
-            ("add_paper", {"title": "x"}), ("add_claim", {"paper": "p_x"}),
+            ("add_paper", {"title": "x"}), ("add_claim", {"paper": "p_x", "locator": "abstract:s1"}),
             ("add_question", {"text": "x"}), ("set_question_status", {"question": "q_1"}),
             ("add_edge", {"src": "q_1", "dst": "q_1", "kind": "mentions"}),
             ("extract_claims", {}), ("discover_papers", {"query": "sleep"}),
@@ -232,7 +232,7 @@ class ClientSafetyTests(unittest.TestCase):
                 })["paper"]
                 claim = client.add_claim(
                     paper["id"], "Sleep improves memory.", "Sleep improves memory.",
-                    stance="supports")["claim"]
+                    stance="supports", locator="abstract:s1")["claim"]
                 client.add_edge(claim["id"], question["id"], "supports")
                 calls = {
                     "search": {"query": "sleep"},
@@ -298,7 +298,7 @@ class ClientSafetyTests(unittest.TestCase):
 
             # Test find_path
             p = client.add_paper({"title": "Path Paper"})["paper"]
-            c = client.add_claim(p["id"], "Fact 1", "Fact 1")["claim"]
+            c = client.add_claim(p["id"], "Fact 1", "Fact 1", locator="abstract:s1")["claim"]
             q = client.add_question("Question 1")["question"]
             client.add_edge(c["id"], q["id"], "supports")
             path = client.find_path(c["id"], q["id"])

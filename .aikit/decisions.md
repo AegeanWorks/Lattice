@@ -594,3 +594,14 @@ contract, a dependency, a data format or the architecture; IDs are consecutive a
 ## License notice cleanup (2026-10-26)
 
 - The license-history notes were removed from README.md and COMMERCIAL.md: the project is offered only under the Aegean License 1.1 (AL-1.1), with commercial use under ACL-1.0.
+
+## ADR-031: Write-Time Quote-Plus-Locator Provenance with Two-Tier Resolution (2026-11-02)
+
+- **Status**: Accepted
+- **Context**: Claims accepted an optional `locator` (`""` default) across CLI, MCP, client, web and snapshot import, while `check` only verified non-empty text/quote. Compact agent views (`compact_search`, `compact_related`, `compact_subgraph`) stripped quotes to snippets that an agent could mis-cite, and search-mode `brief`/`review` omitted quotes entirely. Silent corruption modes: quotes drifting from edited abstracts and `abstract:sN` locators rotting after re-splits.
+- **Decision**:
+  1. `models.validate_locator` requires a non-empty locator (max 200 chars); `Repository.add_claim` enforces it centrally so all 7 claim paths (CLI `--locator` required, MCP `locator` required, client/web/snapshots/extraction/ingest) reject missing locators at write time with Why/Fix. No schema change.
+  2. `checks` adds blocking errors: `claim.locator_missing` (empty), `claim.quote_drift` (normalized quote not in normalized title+abstract, skipping ephemeral `text:` sources), `claim.locator_unresolvable` (only the `abstract`/`abstract:sN`/`text:sN` family: `abstract` requires quote-in-abstract, `:sN` requires 1 <= N <= live empirical sentence count; free-text page/section/`key_findings` labels are attributable, not machine-resolvable). `sync_article key_findings`-only quotes therefore fail `check` until grounded in the abstract or replaced by `auto_extract`.
+  3. Query layer stays deterministic (existing ORDER BY/sorted order plus new `id` tiebreak in `build_context_pack`); `brief` search lines, `review` search claims, `context pack` markdown and compact views always carry `locator` and label snippets as `snippet_is_quote: False` / `label_is_quote: False` pointers requiring `get_entity` for the verbatim quote.
+  4. Studio (minimal, guard-bounded): locator input `required` with client-side guard, claim list and node-detail inspector always render `Locator:` (or `MISSING — fails check`) and the verbatim quote.
+- **Consequences**: No claim enters without a pointer; drifted quotes and rotted `abstract:sN` locators fail `check` instead of silently persisting; agents get identical, fully-grounded answers twice with no snippet-to-quote confusion. Legacy snapshots/DB rows with empty locators now fail loudly on import/`check` and must be re-grounded. Zero dependencies, one SQLite file.

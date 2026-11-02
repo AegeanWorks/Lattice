@@ -112,6 +112,8 @@ def compact_search(result: Dict[str, Any], tokens: int = 800) -> Dict[str, Any]:
         {
             "ref": f"claim:{claim['id']}",
             "snippet": _truncate(claim.get("text"), 160),
+            "snippet_is_quote": False,
+            "locator": str(claim.get("locator") or "MISSING"),
             "stance": str(claim.get("stance") or ""),
             "confidence": claim.get("confidence", 0.0),
             "paper": str((claim.get("paper") or {}).get("id") or ""),
@@ -138,7 +140,7 @@ def compact_search(result: Dict[str, Any], tokens: int = 800) -> Dict[str, Any]:
         "omitted_claims": omitted_claims,
         "questions": kept_questions,
         "omitted_questions": omitted_questions,
-        "next": "Expand a ref with get_entity; list neighbors with related_findings.",
+        "next": "Snippets are pointers, never quotes. Call get_entity on a ref for its verbatim quote plus locator.",
     }
 
 
@@ -150,6 +152,8 @@ def compact_related(result: Dict[str, Any], tokens: int = 600) -> Dict[str, Any]
             "ref": item["ref"],
             "relation": str(item.get("relation") or ""),
             "snippet": _truncate(item.get("text"), 160),
+            "snippet_is_quote": False,
+            "locator": str(item.get("locator") or "MISSING"),
             "stance": str(item.get("stance") or ""),
             "confidence": item.get("confidence", 0.0),
             "paper": str(item.get("paper") or ""),
@@ -167,7 +171,7 @@ def compact_related(result: Dict[str, Any], tokens: int = 600) -> Dict[str, Any]
         "count": len(kept),
         "omitted": omitted,
         "related": kept,
-        "next": "Call related_findings on any ref to continue, or get_entity for the full claim.",
+        "next": "Snippets are pointers, never quotes. Call related_findings on any ref to continue, or get_entity for the verbatim quote plus locator.",
     }
 
 
@@ -179,6 +183,8 @@ def compact_subgraph(result: Dict[str, Any], tokens: int = 800) -> Dict[str, Any
             "ref": node["ref"],
             "type": str(node.get("type") or ""),
             "label": _truncate(node.get("title") or node.get("text") or node["ref"], 100),
+            "label_is_quote": False,
+            "locator": str(node.get("locator") or ("MISSING" if str(node.get("type") or "") == "claim" else "")),
             "study_type": str(node.get("study_type") or ""),
         }
         for node in result.get("nodes", [])
@@ -199,7 +205,7 @@ def compact_subgraph(result: Dict[str, Any], tokens: int = 800) -> Dict[str, Any
         "omitted_nodes": omitted_nodes,
         "edges": kept_edges,
         "omitted_edges": omitted_edges,
-        "next": "Pick a node ref and call subgraph again to walk outward, or get_entity to read it.",
+        "next": "Labels are pointers, never quotes. Pick a node ref and call subgraph again to walk outward, or get_entity for its verbatim quote plus locator.",
     }
 
 
@@ -255,7 +261,7 @@ def _render_markdown_pack(
                 p = papers_by_id.get(c.get("paper_id", ""))
                 src_label = f"{p['title']} ({p.get('year') or 'n.d.'})" if p else (c.get("paper_id") or "unknown")
                 lines.append(f"- **[{c['id']}]** {c['text']}")
-                lines.append(f"  - *Stance:* `{c.get('stance', 'mentions')}` | *Confidence:* {float(c.get('confidence', 0.5)):.2f}")
+                lines.append(f"  - *Stance:* `{c.get('stance', 'mentions')}` | *Confidence:* {float(c.get('confidence', 0.5)):.2f} | *Locator:* `{c.get('locator') or 'MISSING'}`")
                 if c.get("quote"):
                     lines.append(f"  - *Verbatim Quote:* \"{c['quote']}\"")
                 lines.append(f"  - *Source Paper:* {src_label}")
@@ -494,7 +500,7 @@ def build_context_pack(
     contra_claim_ids = {c["claim_a_id"] for c in contradictions} | {c["claim_b_id"] for c in contradictions}
     sorted_claims = sorted(
         claims_map.values(),
-        key=lambda c: (1 if c["id"] in contra_claim_ids else 0, float(c.get("confidence", 0.5))),
+        key=lambda c: (1 if c["id"] in contra_claim_ids else 0, float(c.get("confidence", 0.5)), str(c.get("id", ""))),
         reverse=True,
     )
 

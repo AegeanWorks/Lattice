@@ -61,10 +61,10 @@ class WebInterfaceTests(unittest.TestCase):
         first, _ = self.repository.add_paper({"title": "Sleep One", "authors": "A"})
         second, _ = self.repository.add_paper({"title": "Sleep Two", "authors": "B"})
         c1 = self.repository.add_claim(first.id, "Sleep improved memory recall.",
-                                       "Sleep improved memory recall by 28%.", stance="supports")
+                                       "Sleep improved memory recall by 28%.", stance="supports", locator="abstract:s1")
         c2 = self.repository.add_claim(second.id, "Sleep enhanced memory recall.",
                                        "Sleep enhanced memory recall across participants.",
-                                       stance="supports")
+                                       stance="supports", locator="abstract:s1")
         self.repository.add_edge(c1.id, question.id, kind="answers")
         self.repository.add_edge(c2.id, question.id, kind="answers")
 

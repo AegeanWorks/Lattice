@@ -22,6 +22,7 @@ from lattice.models import (
     paper_id,
     parse_confidence,
     validate_edge_kind,
+    validate_locator,
     validate_ref,
     validate_stance,
 )
@@ -127,12 +128,13 @@ class Repository:
         if not source_quote:
             fail("a claim needs a quote", "provenance is the point of the graph",
                  "pass the exact source sentence as --quote")
+        clean_locator = validate_locator(locator)
         identifier = next_id("c", self._ids("claims"))
         created = utc_now()
         self.connection.execute(
             "INSERT INTO claims(id, paper_id, text, quote, locator, stance, confidence, created_at)"
             " VALUES(?, ?, ?, ?, ?, ?, ?, ?)",
-            (identifier, bare_id(paper_ref), claim_text, source_quote, str(locator or "").strip(),
+            (identifier, bare_id(paper_ref), claim_text, source_quote, clean_locator,
              validate_stance(stance), parse_confidence(confidence), created),
         )
         self.connection.commit()

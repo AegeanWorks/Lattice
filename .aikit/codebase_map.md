@@ -8,9 +8,9 @@
 ## 📊 Codebase Metrics
 - **Total Python Modules**: `49`
 - **Total Classes**: `65`
-- **Total Top-Level Functions**: `247`
-- **Total Class Methods**: `406`
-- **Total Source Lines**: `15651`
+- **Total Top-Level Functions**: `250`
+- **Total Class Methods**: `410`
+- **Total Source Lines**: `15792`
 
 ---
 
@@ -33,7 +33,7 @@
 ### [`lattice/analysis.py`](lattice/analysis.py)
 > *Contradiction detection, related-finding links, keystone ranking and evidence matrices.*
 
-**Size**: `886` lines (`35760` bytes)
+**Size**: `888` lines (`35915` bytes)
 
 **Classes:**
 - `class ContradictionPair` - *An opposing pair of empirical claims sharing a research question or high domain keyword overlap.*
@@ -62,7 +62,7 @@
 ### [`lattice/api.py`](lattice/api.py)
 > *Stable public Python surface for host integrations such as neurocore.*
 
-**Size**: `359` lines (`9528` bytes)
+**Size**: `361` lines (`9574` bytes)
 
 **Functions:**
 - `def _question_key(value)` - *Normalize `question:q_000001` or `q_000001` to the bare identifier.*
@@ -74,7 +74,7 @@
 ### [`lattice/checks.py`](lattice/checks.py)
 > *Integrity gate: every citation, endpoint, quote and support cycle is decidable locally.*
 
-**Size**: `202` lines (`8098` bytes)
+**Size**: `267` lines (`10920` bytes)
 
 **Classes:**
 - `class CheckIssue` - *One finding, tagged error or warning and named by a stable code.*
@@ -88,7 +88,9 @@
 **Functions:**
 - `def run_checks(repository)` - *Run every integrity check and return one report.*
 - `def _check_schema(connection, report)` - *The database must declare this build's schema version.*
-- `def _check_claims(connection, report)` - *Every claim needs assertion text, a quote and an existing paper.*
+- `def _check_claims(connection, report)` - *Every claim needs assertion text, a quote, a locator and an existing paper.*
+- `def _check_quote_drift(row, report)` - *The verbatim quote must still appear in its paper's stored title+abstract.*
+- `def _check_locator_resolves(row, report)` - *The abstract/text locator family must resolve against the stored abstract.*
 - `def _check_edges(connection, report)` - *Both endpoints of every edge must exist.*
 - `def _check_duplicates(connection, report)` - *DOI, arXiv and normalized title/year duplicates are errors.*
 - `def _check_support_cycles(connection, report)` - *Support and extension relations between claims must stay acyclic.*
@@ -103,7 +105,7 @@
 ### [`lattice/cli.py`](lattice/cli.py)
 > *Command-line interface: ingest, assert, link, ask, brief, review, check and serve MCP.*
 
-**Size**: `863` lines (`38956` bytes)
+**Size**: `863` lines (`38978` bytes)
 
 **Functions:**
 - `def build_parser()` - *The complete command grammar.*
@@ -214,7 +216,7 @@
 ### [`lattice/context.py`](lattice/context.py)
 > *Token-budgeted context views for AI agents: peek, search, expand, drill down.*
 
-**Size**: `534` lines (`21359` bytes)
+**Size**: `540` lines (`21927` bytes)
 
 **Classes:**
 - `class ContextPack` - *Token-budgeted GraphRAG context pack for LLM reasoning and question-answering.*
@@ -374,7 +376,7 @@
 ### [`lattice/inquiry.py`](lattice/inquiry.py)
 > *Evidence-first question answering: `ask`, token-budgeted `brief` and `review` outlines.*
 
-**Size**: `308` lines (`12959` bytes)
+**Size**: `319` lines (`13564` bytes)
 
 **Functions:**
 - `def ask(repository, target, limit)` - *Return evidence for a question, or matching claims when the target is a search phrase.*
@@ -385,8 +387,8 @@
 - `def _keywords(text)` - *Distinct lowercase words of at least four letters, without common question words.*
 - `def _question_header(evidence)` - *The fixed header of a question brief.*
 - `def _claim_line(item)` - *One evidence line: claim, confidence, quote and source.*
-- `def _search_line(claim)` - *One search hit line.*
-- `def _suggestion_lines(suggestions)` - *Unlinked claim candidates, one line each.*
+- `def _search_line(claim)` - *One search hit line with its grounding quote and locator.*
+- `def _suggestion_lines(suggestions)` - *Unlinked claim candidates, one line each (pointers, never evidence).*
 - `def _fits(lines, candidate, tokens)` - *Whether adding one line keeps the estimate under the budget.*
 - `def _fit(lines, candidates, tokens)` - *Append candidate lines while the running estimate stays under the budget.*
 - `def _citation_lines(repository, refs)` - *Resolved citation lines for paper references, in first-seen order.*
@@ -401,7 +403,7 @@
 ### [`lattice/mcp.py`](lattice/mcp.py)
 > *A dependency-free MCP stdio server exposing the graph as JSON-RPC tools.*
 
-**Size**: `527` lines (`26557` bytes)
+**Size**: `527` lines (`26591` bytes)
 
 **Functions:**
 - `def _tool(name, description, properties, required)` - *An MCP tool declaration with a JSON Schema for its arguments.*
@@ -445,7 +447,7 @@
 ### [`lattice/models.py`](lattice/models.py)
 > *Value objects and the validation rules shared by storage, ingestion and queries.*
 
-**Size**: `331` lines (`11378` bytes)
+**Size**: `349` lines (`12190` bytes)
 
 **Classes:**
 - `class Paper` - *A source record: bibliographic metadata plus its stable identifier.*
@@ -468,6 +470,7 @@
 - `def validate_stance(stance)` - *A claim stance must be one of `STANCES`.*
 - `def parse_confidence(value)` - *Confidence is a number in [0, 1]; the default is 0.5.*
 - `def validate_edge_kind(kind)` - *An edge kind must be one of `EDGE_KINDS`.*
+- `def validate_locator(locator)` - *A claim locator must be a non-empty pointer to its source.*
 - `def entity_type(ref)` - *The entity type named by a reference such as `claim:c_000001`.*
 - `def validate_ref(ref)` - *Normalize `claim:c_000001` and reject malformed references.*
 - `def bare_id(ref)` - *The identifier part of a reference.*
@@ -478,7 +481,7 @@
 ### [`lattice/repository.py`](lattice/repository.py)
 > *The knowledge graph API: papers, claims, questions, typed edges and evidence queries.*
 
-**Size**: `641` lines (`31210` bytes)
+**Size**: `643` lines (`31269` bytes)
 
 **Classes:**
 - `class Repository` - *One connection's view of the graph; every write is committed before it returns.*
@@ -595,7 +598,7 @@
 ### [`lattice/web.py`](lattice/web.py)
 > *Zero-dependency web server and human-friendly Research Studio UI for Lattice.*
 
-**Size**: `2434` lines (`100505` bytes)
+**Size**: `2438` lines (`100669` bytes)
 
 **Classes:**
 - `class WebResponse` - *Immutable HTTP response returned by `dispatch_web_request`.*
@@ -643,7 +646,7 @@
 ### [`tests/test_analysis.py`](tests/test_analysis.py)
 > *Unit tests for scientific contradiction detection, keystone centrality, and evidence matrix analysis.*
 
-**Size**: `400` lines (`19986` bytes)
+**Size**: `400` lines (`20354` bytes)
 
 **Classes:**
 - `class TestAnalysis` - *Verify contradiction detection, keystone entity ranking, and Paper x Question evidence matrix.*
@@ -672,7 +675,7 @@
 ### [`tests/test_api.py`](tests/test_api.py)
 > *Unit tests for the public `lattice.api` integration surface.*
 
-**Size**: `367` lines (`14102` bytes)
+**Size**: `367` lines (`14148` bytes)
 
 **Classes:**
 - `class PublicApiTests` - *Verify the facade stays complete, inert at import time and faithful.*
@@ -700,7 +703,7 @@
 ### [`tests/test_checks.py`](tests/test_checks.py)
 > *The integrity gate catches broken provenance, endpoints, duplicates and cycles.*
 
-**Size**: `70` lines (`3308` bytes)
+**Size**: `101` lines (`4871` bytes)
 
 **Classes:**
 - `class CheckTests` - *Each test injects one defect into an otherwise clean graph.*
@@ -712,13 +715,17 @@
   - Method `.test_empty_quote_is_an_error()`
   - Method `.test_doi_duplicate_is_an_error()`
   - Method `.test_question_without_evidence_is_a_warning()`
+  - Method `.test_missing_locator_is_an_error()`
+  - Method `.test_drifted_quote_is_an_error()`
+  - Method `.test_rotted_abstract_locator_is_an_error()`
+  - Method `.test_reject_claim_without_locator_at_write_time()`
 
 ---
 
 ### [`tests/test_cli.py`](tests/test_cli.py)
 > *End-to-end command contracts without spawning subprocesses.*
 
-**Size**: `382` lines (`16687` bytes)
+**Size**: `382` lines (`16863` bytes)
 
 **Classes:**
 - `class CliTests` - *Drive the real parser and handlers against a temporary database.*
@@ -750,7 +757,7 @@
 ### [`tests/test_client.py`](tests/test_client.py)
 > *Tests for the turnkey client facade used by AI hosts.*
 
-**Size**: `354` lines (`17528` bytes)
+**Size**: `354` lines (`17646` bytes)
 
 **Classes:**
 - `class LatticeClientTests` - *Verify lifecycle, tool parity, convenience methods and failure modes.*
@@ -792,7 +799,7 @@
 ### [`tests/test_context.py`](tests/test_context.py)
 > *Unit tests for the token-budgeted, RLM-style AI context views.*
 
-**Size**: `230` lines (`10943` bytes)
+**Size**: `230` lines (`11058` bytes)
 
 **Classes:**
 - `class ContextViewTests` - *Verify compact payloads, truncation, omission counts and the budget floor.*
@@ -832,7 +839,7 @@
 ### [`tests/test_diff.py`](tests/test_diff.py)
 > *Tests for graph snapshot diffing: record comparison, snapshot pairs and live-repository diffs.*
 
-**Size**: `193` lines (`9360` bytes)
+**Size**: `193` lines (`9406` bytes)
 
 **Classes:**
 - `class DiffRecordsTests` - *The pure record comparison behind every diff entry point.*
@@ -934,7 +941,7 @@
 ### [`tests/test_inquiry.py`](tests/test_inquiry.py)
 > *Ask, brief and review are deterministic and never invent a citation.*
 
-**Size**: `84` lines (`3680` bytes)
+**Size**: `84` lines (`3732` bytes)
 
 **Classes:**
 - `class InquiryTests` - *A small graph with one supporting, one contradicting and one unrelated claim.*
@@ -954,7 +961,7 @@
 ### [`tests/test_mcp.py`](tests/test_mcp.py)
 > *MCP JSON-RPC contracts and stdio framing.*
 
-**Size**: `259` lines (`12785` bytes)
+**Size**: `259` lines (`12889` bytes)
 
 **Classes:**
 - `class McpTests` - *Call the protocol handler directly; no sockets or spawns.*
@@ -985,7 +992,7 @@
 ### [`tests/test_meta.py`](tests/test_meta.py)
 > *Unit tests for quantitative meta-analysis, effect sizes and forest plots.*
 
-**Size**: `133` lines (`5831` bytes)
+**Size**: `133` lines (`5900` bytes)
 
 **Classes:**
 - `class MetaAnalysisTests` - *Verify statistical pooling, heterogeneity metrics and forest plot renderers.*
@@ -1028,7 +1035,7 @@
 ### [`tests/test_repository.py`](tests/test_repository.py)
 > *Graph writes, dedupe, references, search and evidence grouping.*
 
-**Size**: `205` lines (`9571` bytes)
+**Size**: `205` lines (`9801` bytes)
 
 **Classes:**
 - `class RepositoryTests` - *Every test gets a fresh in-memory graph.*
@@ -1076,7 +1083,7 @@
 ### [`tests/test_snapshots.py`](tests/test_snapshots.py)
 > *Tests for knowledge interaction: multi-term search, subgraphs, question status, and snapshots.*
 
-**Size**: `210` lines (`9272` bytes)
+**Size**: `210` lines (`9364` bytes)
 
 **Classes:**
 - `class InteractionAndSnapshotTests` - *Verify multi-term search, subgraph traversal, question status, and JSONL snapshot I/O.*
@@ -1093,7 +1100,7 @@
 ### [`tests/test_synthesis.py`](tests/test_synthesis.py)
 > *Tests for scientific literature synthesis: consensus scoring, thematic clusters, and BibTeX.*
 
-**Size**: `121` lines (`5111` bytes)
+**Size**: `121` lines (`5134` bytes)
 
 **Classes:**
 - `class SynthesisTests` - *Verify consensus scoring, thematic clustering, follow-up queries, and BibTeX generation.*
@@ -1120,7 +1127,7 @@
 ### [`tests/test_web.py`](tests/test_web.py)
 > *Tests for the web-based human UI and JSON API dispatcher (zero sockets).*
 
-**Size**: `364` lines (`16282` bytes)
+**Size**: `364` lines (`16328` bytes)
 
 **Classes:**
 - `class WebInterfaceTests` - *Verify HTML rendering and REST API handlers via pure request dispatch.*

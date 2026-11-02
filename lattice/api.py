@@ -120,6 +120,7 @@ from lattice.models import (
     paper_id,
     parse_confidence,
     validate_edge_kind,
+    validate_locator,
     validate_ref,
     validate_stance,
 )
@@ -354,6 +355,7 @@ __all__ = sorted([
     "synthesize_question",
     "utc_now",
     "validate_edge_kind",
+    "validate_locator",
     "validate_ref",
     "validate_stance",
 ])

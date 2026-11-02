@@ -97,7 +97,7 @@ def build_parser() -> argparse.ArgumentParser:
     claim.add_argument("--paper", required=True, help="paper reference or bare p_ id")
     claim.add_argument("--text", required=True, help="the asserted claim")
     claim.add_argument("--quote", required=True, help="exact sentence from the source")
-    claim.add_argument("--locator", default="", help="page, section or paragraph")
+    claim.add_argument("--locator", required=True, help="page, section or paragraph (e.g. abstract:s1)")
     claim.add_argument("--stance", default="mentions", help="supports, contradicts or mentions")
     claim.add_argument("--confidence", type=float, default=0.5, help="weight in [0, 1]")
     claim.set_defaults(handler=_run_claim)

@@ -43,19 +43,19 @@ class RepositoryTests(unittest.TestCase):
     def test_claim_requires_quote(self):
         paper = self.paper()
         with self.assertRaises(LatticeError):
-            self.repository.add_claim(paper.id, "A claim", "   ")
+            self.repository.add_claim(paper.id, "A claim", "   ", locator="abstract:s1")
 
     def test_claim_ids_are_sequential(self):
         paper = self.paper()
-        first = self.repository.add_claim(paper.id, "One", "quote one")
-        second = self.repository.add_claim(paper.id, "Two", "quote two", stance="supports")
+        first = self.repository.add_claim(paper.id, "One", "quote one", locator="abstract:s1")
+        second = self.repository.add_claim(paper.id, "Two", "quote two", stance="supports", locator="abstract:s1")
         self.assertEqual(first.id, "c_000001")
         self.assertEqual(second.id, "c_000002")
         self.assertEqual(second.stance, "supports")
 
     def test_question_and_edges(self):
         paper = self.paper()
-        claim = self.repository.add_claim(paper.id, "Sleep helps memory", "sleep helps memory")
+        claim = self.repository.add_claim(paper.id, "Sleep helps memory", "sleep helps memory", locator="abstract:s1")
         question = self.repository.add_question("Does sleep help memory?")
         edge = self.repository.add_edge(f"claim:{claim.id}", question.id, "supports", "quote match")
         self.assertEqual(edge.kind, "supports")
@@ -63,7 +63,7 @@ class RepositoryTests(unittest.TestCase):
 
     def test_duplicate_edge_is_refused(self):
         paper = self.paper()
-        claim = self.repository.add_claim(paper.id, "One", "quote")
+        claim = self.repository.add_claim(paper.id, "One", "quote", locator="abstract:s1")
         question = self.repository.add_question("Question?")
         self.repository.add_edge(claim.id, question.id, "supports")
         with self.assertRaises(LatticeError):
@@ -80,7 +80,7 @@ class RepositoryTests(unittest.TestCase):
 
     def test_search_across_entities(self):
         paper = self.paper("Memory consolidation")
-        self.repository.add_claim(paper.id, "Sleep consolidates memory", "quote", stance="supports")
+        self.repository.add_claim(paper.id, "Sleep consolidates memory", "quote", stance="supports", locator="abstract:s1")
         self.repository.add_question("Does sleep consolidate memory?")
         found = self.repository.search("sleep")
         self.assertEqual(len(found["claims"]), 1)
@@ -139,7 +139,7 @@ class RepositoryTests(unittest.TestCase):
 
     def test_evidence_groups_and_gaps(self):
         paper = self.paper()
-        claim = self.repository.add_claim(paper.id, "It helps", "it helps")
+        claim = self.repository.add_claim(paper.id, "It helps", "it helps", locator="abstract:s1")
         question = self.repository.add_question("Does it help?")
         self.repository.add_edge(claim.id, question.id, "supports")
         evidence = self.repository.evidence(question.id)
@@ -160,9 +160,9 @@ class RepositoryTests(unittest.TestCase):
         paper = self.paper()
         question = self.repository.add_question("Does sleep consolidate memory?")
         support = self.repository.add_claim(paper.id, "Sleep helps.", "Sleep helps.",
-                                            stance="supports", confidence=0.8)
+                                            stance="supports", confidence=0.8, locator="abstract:s1")
         contradict = self.repository.add_claim(paper.id, "Sleep does not help.",
-                                               "No effect was found.", stance="contradicts")
+                                               "No effect was found.", stance="contradicts", locator="abstract:s1")
         self.repository.add_edge(f"claim:{support.id}", f"question:{question.id}", "supports")
         self.repository.add_edge(f"claim:{contradict.id}", f"question:{question.id}",
                                  "contradicts")
@@ -185,7 +185,7 @@ class RepositoryTests(unittest.TestCase):
 
     def test_neighbors_filter_by_kind(self):
         paper = self.paper()
-        claim = self.repository.add_claim(paper.id, "One", "quote")
+        claim = self.repository.add_claim(paper.id, "One", "quote", locator="abstract:s1")
         self.repository.add_edge(paper.id, claim.id, "mentions")
         self.repository.add_edge(paper.id, claim.id, "supports")
         self.assertEqual(len(self.repository.neighbors(paper.id)), 2)

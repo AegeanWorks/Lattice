@@ -92,13 +92,13 @@ class TestAnalysis(unittest.TestCase):
         p3, _ = self.repo.add_paper({"title": "Transformers for Text", "authors": "C"})
         c1 = self.repo.add_claim(
             p1.id, "Slow-wave sleep improved memory recall in participants.",
-            "Slow-wave sleep improved memory recall in participants by 28%.", stance="supports")
+            "Slow-wave sleep improved memory recall in participants by 28%.", stance="supports", locator="abstract:s1")
         c2 = self.repo.add_claim(
             p2.id, "Slow-wave sleep enhanced memory recall across participants.",
-            "Slow-wave sleep enhanced memory recall across participants.", stance="supports")
+            "Slow-wave sleep enhanced memory recall across participants.", stance="supports", locator="abstract:s1")
         c3 = self.repo.add_claim(
             p3.id, "Transformers classify benchmark text.",
-            "Transformer models classify benchmark text.", stance="mentions")
+            "Transformer models classify benchmark text.", stance="mentions", locator="abstract:s1")
         self.repo.add_edge(c1.id, q.id, kind="answers")
         self.repo.add_edge(c2.id, q.id, kind="answers")
 
@@ -123,16 +123,16 @@ class TestAnalysis(unittest.TestCase):
         p3, _ = self.repo.add_paper({"title": "Three", "authors": "C"})
         one = self.repo.add_claim(
             p1.id, "Memory recall improved with sleep.",
-            "Memory recall improved with sleep.", stance="supports")
+            "Memory recall improved with sleep.", stance="supports", locator="abstract:s1")
         two = self.repo.add_claim(
             p2.id, "Sleep alters memory recall.",
-            "Sleep alters memory recall.", stance="supports")
+            "Sleep alters memory recall.", stance="supports", locator="abstract:s1")
         three = self.repo.add_claim(
             p3.id, "Diet alters memory.",
-            "Diet alters memory.", stance="mentions")
+            "Diet alters memory.", stance="mentions", locator="abstract:s1")
         threshold = self.repo.add_claim(
             p3.id, "Diet alters skin.",
-            "Diet alters skin.", stance="mentions")
+            "Diet alters skin.", stance="mentions", locator="abstract:s1")
 
         pairs = find_related_findings(self.repo)
         overlap = {tuple(sorted((pair.claim_a_id, pair.claim_b_id))) for pair in pairs}
@@ -157,13 +157,13 @@ class TestAnalysis(unittest.TestCase):
         p3, _ = self.repo.add_paper({"title": "Three", "authors": "C"})
         supporting = self.repo.add_claim(
             p1.id, "Slow-wave sleep improved memory recall.",
-            "Slow-wave sleep improved memory recall by 28%.", stance="supports")
+            "Slow-wave sleep improved memory recall by 28%.", stance="supports", locator="abstract:s1")
         opposing = self.repo.add_claim(
             p2.id, "Slow-wave sleep did not improve memory recall.",
-            "Slow-wave sleep did not improve memory recall.", stance="contradicts")
+            "Slow-wave sleep did not improve memory recall.", stance="contradicts", locator="abstract:s1")
         linked = self.repo.add_claim(
             p3.id, "Slow-wave sleep enhanced memory recall.",
-            "Slow-wave sleep enhanced memory recall.", stance="supports")
+            "Slow-wave sleep enhanced memory recall.", stance="supports", locator="abstract:s1")
         for claim in (supporting, opposing, linked):
             self.repo.add_edge(claim.id, q.id, kind="answers")
         self.repo.add_edge(supporting.id, linked.id, kind="related", note="manual")
@@ -182,7 +182,7 @@ class TestAnalysis(unittest.TestCase):
             })
             claim = self.repo.add_claim(
                 paper.id, "Slow-wave sleep improved memory recall.",
-                "Slow-wave sleep improved memory recall in participants by 28%.", stance="supports")
+                "Slow-wave sleep improved memory recall in participants by 28%.", stance="supports", locator="abstract:s1")
             self.repo.add_edge(claim.id, q.id, kind="answers")
             claims.append(claim)
         created = link_related_findings(self.repo, limit_per_claim=2)
@@ -201,13 +201,13 @@ class TestAnalysis(unittest.TestCase):
         p3, _ = self.repo.add_paper({"title": "Sleep Without Question", "authors": "C"})
         c1 = self.repo.add_claim(
             p1.id, "Slow-wave sleep improved memory recall in adults.",
-            "Slow-wave sleep improved memory recall in adults by 28%.", stance="supports")
+            "Slow-wave sleep improved memory recall in adults by 28%.", stance="supports", locator="abstract:s1")
         c2 = self.repo.add_claim(
             p2.id, "Slow-wave sleep enhanced memory recall in older adults.",
-            "Slow-wave sleep enhanced memory recall in older adults.", stance="supports")
+            "Slow-wave sleep enhanced memory recall in older adults.", stance="supports", locator="abstract:s1")
         c3 = self.repo.add_claim(
             p3.id, "Slow-wave sleep improved memory recall after training.",
-            "Slow-wave sleep improved memory recall after training.", stance="supports")
+            "Slow-wave sleep improved memory recall after training.", stance="supports", locator="abstract:s1")
         self.repo.add_edge(c1.id, q.id, kind="answers")
         self.repo.add_edge(c2.id, q.id, kind="answers")
 
@@ -245,10 +245,10 @@ class TestAnalysis(unittest.TestCase):
         p2, _ = self.repo.add_paper({"title": "Two", "authors": "B"})
         c1 = self.repo.add_claim(
             p1.id, "Sleep improved memory recall.", "Sleep improved memory recall.",
-            stance="supports")
+            stance="supports", locator="abstract:s1")
         c2 = self.repo.add_claim(
             p2.id, "Sleep enhanced memory recall.", "Sleep enhanced memory recall.",
-            stance="supports")
+            stance="supports", locator="abstract:s1")
         self.repo.add_edge(c1.id, q.id, kind="answers")
         self.repo.add_edge(c2.id, q.id, kind="answers")
 

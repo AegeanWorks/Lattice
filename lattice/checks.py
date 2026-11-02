@@ -71,18 +71,83 @@ def _check_schema(connection, report: CheckReport) -> None:
 
 
 def _check_claims(connection, report: CheckReport) -> None:
-    """Every claim needs assertion text, a quote and an existing paper."""
+    """Every claim needs assertion text, a quote, a locator and an existing paper."""
     rows = connection.execute(
-        "SELECT c.id, c.text, c.quote, c.paper_id, p.id AS found FROM claims c"
+        "SELECT c.id, c.text, c.quote, c.locator, c.paper_id, p.id AS found,"
+        " p.title AS paper_title, p.abstract AS paper_abstract FROM claims c"
         " LEFT JOIN papers p ON p.id = c.paper_id").fetchall()
     for row in rows:
         if not str(row["text"]).strip() or not str(row["quote"]).strip():
             report.issues.append(CheckIssue(
                 "error", "claim.provenance",
                 f"{row['id']} has empty text or quote; every claim needs both"))
+        if not str(row["locator"] or "").strip():
+            report.issues.append(CheckIssue(
+                "error", "claim.locator_missing",
+                f"{row['id']} has no locator; no locator, no entry"))
         if row["found"] is None:
             report.issues.append(CheckIssue(
                 "error", "claim.source", f"{row['id']} points at missing paper {row['paper_id']}"))
+            continue
+        _check_quote_drift(row, report)
+        _check_locator_resolves(row, report)
+
+
+def _check_quote_drift(row, report: CheckReport) -> None:
+    """The verbatim quote must still appear in its paper's stored title+abstract."""
+    locator = " ".join(str(row["locator"] or "").split())
+    if locator.startswith("text:"):
+        return
+    quote = normalize_text(str(row["quote"] or ""))
+    if not quote:
+        return
+    haystack = normalize_text(
+        f"{row['paper_title'] or ''} {row['paper_abstract'] or ''}")
+    if quote and quote not in haystack:
+        report.issues.append(CheckIssue(
+            "error", "claim.quote_drift",
+            f"{row['id']} quote no longer matches paper {row['paper_id']} (drifted or key_findings-only)"))
+
+
+def _check_locator_resolves(row, report: CheckReport) -> None:
+    """The abstract/text locator family must resolve against the stored abstract."""
+    import re as _re
+    locator = " ".join(str(row["locator"] or "").split())
+    if not locator:
+        return
+    match = _re.fullmatch(r"(abstract|text)(?::s(\d+))?", locator)
+    if match is None:
+        return
+    source, number = match.group(1), match.group(2)
+    if number is None:
+        if source == "abstract":
+            quote = normalize_text(str(row["quote"] or ""))
+            haystack = normalize_text(str(row["paper_abstract"] or ""))
+            if quote and quote not in haystack:
+                report.issues.append(CheckIssue(
+                    "error", "claim.locator_unresolvable",
+                    f"{row['id']} locator 'abstract' does not resolve (quote not in abstract)"))
+        return
+    try:
+        index = int(number)
+    except ValueError:
+        report.issues.append(CheckIssue(
+            "error", "claim.locator_unresolvable",
+            f"{row['id']} locator {locator!r} is malformed"))
+        return
+    if index < 1:
+        report.issues.append(CheckIssue(
+            "error", "claim.locator_unresolvable",
+            f"{row['id']} locator {locator!r} is out of range"))
+        return
+    if source == "abstract":
+        from lattice.extraction import split_empirical_sentences
+        sentences = split_empirical_sentences(str(row["paper_abstract"] or ""))
+        total = len(sentences) if sentences else 1
+        if index > total:
+            report.issues.append(CheckIssue(
+                "error", "claim.locator_unresolvable",
+                f"{row['id']} locator {locator!r} is rotted (abstract has {total} sentence(s))"))
 
 
 def _check_edges(connection, report: CheckReport) -> None:

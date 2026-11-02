@@ -20,11 +20,11 @@ class InquiryTests(unittest.TestCase):
             "venue": "Journal of Sleep", "doi": "10.1/sleep"})
         self.paper = paper
         support = self.repository.add_claim(
-            paper.id, "Sleep consolidates memory", "Sleep consolidates memory.", "p. 4",
-            "supports", 0.9)
+            paper.id, "Sleep consolidates memory", "Sleep consolidates memory.",
+            locator="p. 4", stance="supports", confidence=0.9)
         contradict = self.repository.add_claim(
-            paper.id, "Sleep does not affect recall", "We found no effect.", "p. 9",
-            "contradicts", 0.6)
+            paper.id, "Sleep does not affect recall", "We found no effect.",
+            locator="p. 9", stance="contradicts", confidence=0.6)
         self.question = self.repository.add_question("Does sleep consolidate memory?")
         self.repository.add_edge(support.id, self.question.id, "supports")
         self.repository.add_edge(contradict.id, self.question.id, "contradicts")

@@ -317,13 +317,14 @@ def related_findings(repo: Repository, ref: str, limit: int = 10) -> Dict[str, A
     kind = entity_type(resolved)
     cap = max(1, int(limit))
     rows = repo.connection.execute(
-        "SELECT id, paper_id, text, stance, confidence FROM claims ORDER BY id"
+        "SELECT id, paper_id, text, stance, confidence, locator FROM claims ORDER BY id"
     ).fetchall()
     by_id = {str(row["id"]): row for row in rows}
     text_by_id = {claim_id: str(row["text"]) for claim_id, row in by_id.items()}
     paper_by_id = {claim_id: str(row["paper_id"]) for claim_id, row in by_id.items()}
     stance_by_id = {claim_id: str(row["stance"]) for claim_id, row in by_id.items()}
     confidence_by_id = {claim_id: float(row["confidence"]) for claim_id, row in by_id.items()}
+    locator_by_id = {claim_id: str(row["locator"] or "") for claim_id, row in by_id.items()}
     keywords_by_id = {claim_id: _domain_keywords(text) for claim_id, text in text_by_id.items()}
     question_map = _claim_question_map(repo)
     paper_rows = repo.connection.execute("SELECT id, title, study_type FROM papers").fetchall()
@@ -402,6 +403,7 @@ def related_findings(repo: Repository, ref: str, limit: int = 10) -> Dict[str, A
             "ref": f"claim:{other}",
             "id": other,
             "text": text_by_id.get(other, ""),
+            "locator": locator_by_id.get(other, ""),
             "stance": stance_by_id.get(other, ""),
             "confidence": confidence_by_id.get(other, 0.0),
             "paper": paper,

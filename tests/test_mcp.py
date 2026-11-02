@@ -48,11 +48,11 @@ class McpTests(unittest.TestCase):
                             ["result"]["content"][0]["text"])["paper"]
         c1 = json.loads(self.tool("add_claim", {
             "paper": first["id"], "text": "Sleep improved memory recall.",
-            "quote": "Sleep improved memory recall by 28%.", "stance": "supports"})
+            "quote": "Sleep improved memory recall by 28%.", "stance": "supports", "locator": "abstract:s1"})
             ["result"]["content"][0]["text"])["claim"]
         c2 = json.loads(self.tool("add_claim", {
             "paper": second["id"], "text": "Sleep enhanced memory recall.",
-            "quote": "Sleep enhanced memory recall across participants.", "stance": "supports"})
+            "quote": "Sleep enhanced memory recall across participants.", "stance": "supports", "locator": "abstract:s1"})
             ["result"]["content"][0]["text"])["claim"]
         self.tool("add_edge", {"src": f"claim:{c1['id']}",
                                "dst": f"question:{q['id']}", "kind": "answers"})
@@ -101,7 +101,7 @@ class McpTests(unittest.TestCase):
             ["result"]["content"][0]["text"])["paper"]
         claim = json.loads(
             self.tool("add_claim", {"paper": paper["id"], "text": "Sleep improved recall.",
-                                    "quote": "Sleep improved recall by 28%."})
+                                    "quote": "Sleep improved recall by 28%.", "locator": "abstract:s1"})
             ["result"]["content"][0]["text"])["claim"]
         self.tool("add_edge", {"src": f"claim:{claim['id']}",
                                "dst": f"question:{question['id']}", "kind": "answers"})
@@ -118,7 +118,7 @@ class McpTests(unittest.TestCase):
 
     def test_add_claim_reports_missing_paper(self):
         response = self.tool("add_claim", {"paper": "p_missing", "text": "Claim",
-                                           "quote": "A quote"})
+                                           "quote": "A quote", "locator": "abstract:s1"})
         self.assertTrue(response["result"]["isError"])
         self.assertIn("Fix:", response["result"]["content"][0]["text"])
 

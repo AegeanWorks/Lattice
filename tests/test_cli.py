@@ -40,9 +40,9 @@ class CliTests(unittest.TestCase):
         first, _ = repo.add_paper({"title": "Sleep One", "authors": "A"})
         second, _ = repo.add_paper({"title": "Sleep Two", "authors": "B"})
         c1 = repo.add_claim(first.id, "Sleep improved memory recall.",
-                            "Sleep improved memory recall by 28%.", stance="supports")
+                            "Sleep improved memory recall by 28%.", stance="supports", locator="abstract:s1")
         c2 = repo.add_claim(second.id, "Sleep enhanced memory recall.",
-                            "Sleep enhanced memory recall across participants.", stance="supports")
+                            "Sleep enhanced memory recall across participants.", stance="supports", locator="abstract:s1")
         repo.add_edge(c1.id, question.id, kind="answers")
         repo.add_edge(c2.id, question.id, kind="answers")
         connection.close()
@@ -81,7 +81,7 @@ class CliTests(unittest.TestCase):
         paper = Repository(connection).search("Sleep")["papers"][0]
         code, _, _ = self.run_cli("claim", "--paper", paper["id"], "--text",
                                   "Sleep consolidates memory", "--quote",
-                                  "Sleep consolidates memory.", "--stance", "supports")
+                                  "Sleep consolidates memory.", "--stance", "supports", "--locator", "abstract:s1")
         self.assertEqual(code, 0)
         code, _, _ = self.run_cli("link", "claim:c_000001", "question:q_000001",
                                   "--type", "supports")
@@ -214,11 +214,11 @@ class CliTests(unittest.TestCase):
         paper, _ = repo.add_paper({"title": "Sleep One", "authors": "A",
                                    "study_type": "Cohort Study"})
         first = repo.add_claim(paper.id, "Sleep improved memory recall.",
-                               "Sleep improved memory recall by 28%.", stance="supports")
+                               "Sleep improved memory recall by 28%.", stance="supports", locator="abstract:s1")
         second_paper, _ = repo.add_paper({"title": "Sleep Two", "authors": "B"})
         second = repo.add_claim(second_paper.id, "Sleep enhanced memory recall.",
                                 "Sleep enhanced memory recall across participants.",
-                                stance="supports")
+                                stance="supports", locator="abstract:s1")
         repo.add_edge(first.id, question.id, kind="answers")
         repo.add_edge(second.id, question.id, kind="answers")
         connection.close()
@@ -335,7 +335,7 @@ class CliTests(unittest.TestCase):
         paper = Repository(connection).search("Sleep")["papers"][0]
         connection.close()
         self.run_cli("claim", "--paper", paper["id"], "--text", "Sleep improves recall",
-                     "--quote", "Sleep improves recall by 25%.", "--stance", "supports")
+                     "--quote", "Sleep improves recall by 25%.", "--stance", "supports", "--locator", "abstract:s1")
         self.run_cli("link", "claim:c_000001", "question:q_000001", "--type", "supports")
 
         code, out, err = self.run_cli("pack", "q_000001", "--tokens", "1000")
@@ -358,7 +358,7 @@ class CliTests(unittest.TestCase):
         paper = Repository(connection).search("Sleep")["papers"][0]
         connection.close()
         self.run_cli("claim", "--paper", paper["id"], "--text", "Sleep improves recall",
-                     "--quote", "Sleep improves recall by 25%.", "--stance", "supports")
+                     "--quote", "Sleep improves recall by 25%.", "--stance", "supports", "--locator", "abstract:s1")
         self.run_cli("link", "claim:c_000001", "question:q_000001", "--type", "supports")
 
         code, out, err = self.run_cli("meta", "q_000001")

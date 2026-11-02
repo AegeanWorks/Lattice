@@ -180,14 +180,21 @@ def _claim_line(item: Dict[str, Any]) -> str:
 
 
 def _search_line(claim: Dict[str, Any]) -> str:
-    """One search hit line."""
+    """One search hit line with its grounding quote and locator."""
     paper = claim.get("paper", {})
-    return f"- [{claim['id']}] {claim.get('text', '')} | source: {_citation_short(paper)}"
+    locator = f" | locator: {claim.get('locator', '')}" if claim.get("locator") else " | locator: MISSING"
+    return (f"- [{claim['id']}] {claim.get('text', '')} | quote: \"{claim.get('quote', '')}\""
+            f"{locator} | source: {_citation_short(paper)}")
 
 
 def _suggestion_lines(suggestions: List[Dict[str, Any]]) -> List[str]:
-    """Unlinked claim candidates, one line each."""
-    return [f"- [{claim['id']}] {claim.get('text', '')}" for claim in suggestions]
+    """Unlinked claim candidates, one line each (pointers, never evidence)."""
+    lines = []
+    for claim in suggestions:
+        locator = claim.get("locator") or "MISSING"
+        lines.append(f"- [{claim['id']}] {claim.get('text', '')} "
+                     f"(suggestion only — see quote \"{claim.get('quote', '')}\" @{locator})")
+    return lines
 
 
 def _fits(lines: List[str], candidate: str, tokens: int) -> bool:
@@ -297,8 +304,12 @@ def _search_review(evidence: Dict[str, Any]) -> Tuple[str, List[str]]:
               for paper in papers] or ["- None."]
     lines += ["", "## Matching claims", ""]
     claims = evidence.get("claims", [])
-    lines += [f"- **[{claim['id']}]** {claim['text']} - {_citation_short(claim.get('paper', {}))}"
-              for claim in claims] or ["- None."]
+    rendered = []
+    for claim in claims:
+        locator = claim.get("locator") or "MISSING"
+        rendered.append(f"- **[{claim['id']}]** {claim['text']} - {_citation_short(claim.get('paper', {}))}")
+        rendered.append(f"  > \"{claim.get('quote', '')}\"  Locator: {locator}")
+    lines += rendered or ["- None."]
     refs = [f"paper:{paper['id']}" for paper in papers]
     for claim in claims:
         paper = claim.get("paper") or {}

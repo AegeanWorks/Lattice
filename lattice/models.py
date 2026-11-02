@@ -299,6 +299,24 @@ def validate_edge_kind(kind: str) -> str:
     return value
 
 
+def validate_locator(locator: object) -> str:
+    """A claim locator must be a non-empty pointer to its source.
+
+    Tier 1 resolvable locators (`abstract`, `abstract:sN`, `text:sN`) are
+    verified against the stored paper by `checks`; any other non-empty
+    label (page, section, `key_findings`) is attributable but not
+    machine-resolvable (see ADR-030).
+    """
+    value = " ".join(str(locator or "").split())
+    if not value:
+        fail("a claim needs a locator", "no locator, no entry: a quote without a pointer rots",
+             "pass --locator abstract:s1, abstract, page 4, or key_findings")
+    if len(value) > 200:
+        fail(f"locator {value!r} is too long", "a locator is a short pointer, not prose",
+             "pass a short pointer such as abstract:s1 or page 4")
+    return value
+
+
 def entity_type(ref: str) -> str:
     """The entity type named by a reference such as `claim:c_000001`."""
     if ":" not in ref:

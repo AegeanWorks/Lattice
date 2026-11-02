@@ -249,7 +249,7 @@ class PublicApiTests(unittest.TestCase):
             "study_type": "Randomized Controlled Trial",
         })
         claim = self.repo.add_claim(
-            paper.id, "Sleep improves memory.", "Sleep improves memory.", stance="supports")
+            paper.id, "Sleep improves memory.", "Sleep improves memory.", stance="supports", locator="abstract:s1")
         self.repo.add_edge(claim.id, q1.id, kind="supports")
         self.repo.add_paper({"title": "Caffeine Trial", "study_type": "Randomized Controlled Trial"})
 
@@ -294,7 +294,7 @@ class PublicApiTests(unittest.TestCase):
         q1 = self.repo.add_question("Does sleep consolidate memory?")
         q2 = self.repo.add_question("Does caffeine impair sleep?")
         paper, _ = self.repo.add_paper({"title": "Sleep and Memory Trial"})
-        claim = self.repo.add_claim(paper.id, "Sleep helps.", "Sleep helps.", stance="mentions")
+        claim = self.repo.add_claim(paper.id, "Sleep helps.", "Sleep helps.", stance="mentions", locator="abstract:s1")
         self.repo.add_edge(claim.id, q1.id, kind="answers")
 
         filtered = api.get_evidence_matrix(self.repo, [q2.id])

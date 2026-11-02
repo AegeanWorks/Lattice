@@ -34,12 +34,12 @@ class InteractionAndSnapshotTests(unittest.TestCase):
         })
         self.repository.add_claim(
             p1.id, "Slow-wave sleep improves recall by 28%.",
-            "Slow-wave sleep stabilizes memory traces.", stance="supports", confidence=0.85,
+            "Slow-wave sleep stabilizes memory traces.", stance="supports", confidence=0.85, locator="abstract:s1",
         )
         self.repository.add_claim(
             p2.id, "Wakeful rest does not impair motor retention.",
             "Motor skill retention remained stable without sleep.",
-            stance="contradicts", confidence=0.60,
+            stance="contradicts", confidence=0.60, locator="abstract:s1",
         )
         multi = self.repository.search("hippocampal memory traces")
         self.assertGreaterEqual(len(multi["papers"]), 1)
@@ -55,7 +55,7 @@ class InteractionAndSnapshotTests(unittest.TestCase):
 
     def test_subgraph_traverses_multi_hop_neighborhood(self) -> None:
         paper, _ = self.repository.add_paper({"title": "Graph Paper", "year": "2025"})
-        claim = self.repository.add_claim(paper.id, "Claim one", "Quote one", stance="supports")
+        claim = self.repository.add_claim(paper.id, "Claim one", "Quote one", stance="supports", locator="abstract:s1")
         question = self.repository.add_question("Does graph traversal work?")
         self.repository.add_edge(f"claim:{claim.id}", f"question:{question.id}", "supports")
         self.repository.add_edge(f"claim:{claim.id}", f"paper:{paper.id}", "cites")
@@ -178,7 +178,7 @@ class InteractionAndSnapshotTests(unittest.TestCase):
         from lattice.snapshots import export_cytoscape_data, export_cytoscape_file
 
         paper, _ = self.repository.add_paper({"title": "Network Dynamics", "year": "2025"})
-        claim = self.repository.add_claim(paper.id, "Networks synchronize.", "Networks synchronize.", stance="supports")
+        claim = self.repository.add_claim(paper.id, "Networks synchronize.", "Networks synchronize.", stance="supports", locator="abstract:s1")
         question = self.repository.add_question("Do networks synchronize?")
         self.repository.add_edge(f"claim:{claim.id}", f"question:{question.id}", "answers")
 

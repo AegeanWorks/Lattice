@@ -102,7 +102,7 @@ class SynthesisTests(unittest.TestCase):
             "Evidence graphs reduce citation drift by 73%.",
             "Evidence graphs reduce citation drift by 73%.",
             stance="supports",
-            confidence=0.92,
+            confidence=0.92, locator="abstract:s1",
         )
         report = synthesize(self.repository, "citation drift", tokens=1500)
         self.assertEqual(report.mode, "search")

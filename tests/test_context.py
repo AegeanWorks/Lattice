@@ -33,7 +33,7 @@ class ContextViewTests(unittest.TestCase):
             "study_type": "Randomized Controlled Trial",
         })
         claim = self.repo.add_claim(
-            paper.id, "Sleep improves memory.", "Sleep improves memory.", stance="supports")
+            paper.id, "Sleep improves memory.", "Sleep improves memory.", stance="supports", locator="abstract:s1")
         self.repo.add_edge(claim.id, question.id, kind="answers")
 
         result = outline(self.repo, tokens=400)
@@ -163,7 +163,7 @@ class ContextViewTests(unittest.TestCase):
         c1 = self.repo.add_claim(
             paper.id, "Slow-wave sleep improves memory recall.",
             "TMR during slow-wave sleep enhanced recall by 28%.",
-            stance="supports", confidence=0.88,
+            stance="supports", confidence=0.88, locator="abstract:s1",
         )
         self.repo.add_edge(c1.id, question.id, "supports")
 
@@ -193,7 +193,7 @@ class ContextViewTests(unittest.TestCase):
             c = self.repo.add_claim(
                 paper.id, f"Cognitive endurance finding {i} with long descriptive text across participants.",
                 f"Verbatim empirical quote number {i} supporting this conclusion.",
-                stance="supports", confidence=0.75,
+                stance="supports", confidence=0.75, locator="abstract:s1",
             )
             self.repo.add_edge(c.id, question.id, "supports")
 
@@ -215,9 +215,9 @@ class ContextViewTests(unittest.TestCase):
         p1, _ = self.repo.add_paper({"title": "Caffeine Study 1", "year": 2022})
         p2, _ = self.repo.add_paper({"title": "Caffeine Study 2", "year": 2023})
         c1 = self.repo.add_claim(p1.id, "Caffeine significantly enhanced memory consolidation.",
-                                 "Recall increased by 15%.", stance="supports", confidence=0.8)
+                                 "Recall increased by 15%.", stance="supports", confidence=0.8, locator="abstract:s1")
         c2 = self.repo.add_claim(p2.id, "Caffeine impaired memory consolidation.",
-                                 "Recall decreased by 10%.", stance="contradicts", confidence=0.85)
+                                 "Recall decreased by 10%.", stance="contradicts", confidence=0.85, locator="abstract:s1")
         self.repo.add_edge(c1.id, q.id, "supports")
         self.repo.add_edge(c2.id, q.id, "contradicts")
 
