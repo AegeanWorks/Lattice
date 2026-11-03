@@ -8,9 +8,9 @@
 ## 📊 Codebase Metrics
 - **Total Python Modules**: `49`
 - **Total Classes**: `65`
-- **Total Top-Level Functions**: `250`
-- **Total Class Methods**: `410`
-- **Total Source Lines**: `15792`
+- **Total Top-Level Functions**: `251`
+- **Total Class Methods**: `412`
+- **Total Source Lines**: `15826`
 
 ---
 
@@ -272,7 +272,7 @@
 ### [`lattice/discovery.py`](lattice/discovery.py)
 > *Pluggable automated literature discovery: arXiv, Crossref, OpenAlex, EuropePMC, and offline corpus.*
 
-**Size**: `571` lines (`24042` bytes)
+**Size**: `577` lines (`24264` bytes)
 
 **Classes:**
 - `class PaperCandidate` - *Immutable DTO returned by any literature discovery provider.*
@@ -403,7 +403,7 @@
 ### [`lattice/mcp.py`](lattice/mcp.py)
 > *A dependency-free MCP stdio server exposing the graph as JSON-RPC tools.*
 
-**Size**: `527` lines (`26591` bytes)
+**Size**: `540` lines (`27106` bytes)
 
 **Functions:**
 - `def _tool(name, description, properties, required)` - *An MCP tool declaration with a JSON Schema for its arguments.*
@@ -415,6 +415,7 @@
 - `def _get_prompt(repository, request_id, params)` - *Render a structured scientific synthesis prompt for an AI agent.*
 - `def dispatch_tool(repository, name, arguments)` - *Map a tool name to its repository, discovery, extraction or synthesis operation.*
 - `def _text(arguments, name)` - *A required string argument.*
+- `def _int(arguments, name, default)` - *An optional integer argument that fails with the Error/Why/Fix triad.*
 - `def _result(request_id, result)` - *A JSON-RPC success response.*
 - `def _error(request_id, code, message)` - *A JSON-RPC error response.*
 - `def serve(repository, stdin, stdout)` - *Serve newline-delimited JSON-RPC until the input stream closes.*
@@ -868,7 +869,7 @@
 ### [`tests/test_discovery.py`](tests/test_discovery.py)
 > *Tests for pluggable automated literature discovery (arXiv, Crossref, and offline corpus).*
 
-**Size**: `222` lines (`9254` bytes)
+**Size**: `228` lines (`9577` bytes)
 
 **Classes:**
 - `class DiscoveryTests` - *Verify the 4-layer discovery boundary: DTOs, registry, providers, and service DI.*
@@ -881,6 +882,7 @@
   - Method `.test_europepmc_provider_parses_biomedical_results()`
   - Method `.test_offline_provider_searches_curated_seed_catalog()`
   - Method `.test_discovery_service_ingests_and_deduplicates_across_federated_sources()`
+  - Method `.test_non_integer_limit_fails_with_lattice_error()`
 
 ---
 
@@ -961,7 +963,7 @@
 ### [`tests/test_mcp.py`](tests/test_mcp.py)
 > *MCP JSON-RPC contracts and stdio framing.*
 
-**Size**: `259` lines (`12889` bytes)
+**Size**: `268` lines (`13337` bytes)
 
 **Classes:**
 - `class McpTests` - *Call the protocol handler directly; no sockets or spawns.*
@@ -985,6 +987,7 @@
   - Method `.test_dispatch_tool_rejects_non_object_arguments()`
   - Method `.test_dispatch_tool_rejects_non_string_names()`
   - Method `.test_non_object_params_are_rejected()`
+  - Method `.test_dispatch_tool_integer_coercion_fails_with_lattice_error()`
   - Method `.test_analyze_and_contradictions_tools_and_matrix_resource()`
 
 ---

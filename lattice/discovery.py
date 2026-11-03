@@ -540,7 +540,13 @@ def _validate_search_args(query: str, limit: int) -> str:
         fail("discovery needs a search query",
              "an empty query cannot be dispatched to a literature catalog",
              "pass a scientific topic or phrase to search")
-    if int(limit) < 1:
+    try:
+        count = int(limit)
+    except (TypeError, ValueError):
+        fail(f"limit {limit!r} is not an integer",
+             "discovery must request a numeric candidate count",
+             "pass --limit 1 or more")
+    if count < 1:
         fail(f"limit {limit} is not positive",
              "discovery must request at least one candidate paper",
              "pass --limit 1 or more")

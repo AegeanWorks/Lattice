@@ -309,17 +309,17 @@ def dispatch_tool(repository: Repository, name: str, arguments: Dict[str, Any]) 
     if name == "search":
         return compact_search(repository.search(
             _text(arguments, "query"),
-            int(arguments.get("limit", 20)),
+            _int(arguments, "limit", 20),
             stance=arguments.get("stance"),
             min_confidence=arguments.get("min_confidence"),
             year=arguments.get("year"),
-        ), int(arguments.get("tokens", 800)))
+        ), _int(arguments, "tokens", 800))
     if name == "discover_papers":
         service = DiscoveryService(repository)
         return service.discover(
             _text(arguments, "query"),
             source=str(arguments.get("source") or "offline"),
-            limit=int(arguments.get("limit", 10)),
+            limit=_int(arguments, "limit", 10),
             ingest=bool(arguments.get("ingest", True)),
         )
     if name == "extract_claims":
@@ -335,15 +335,15 @@ def dispatch_tool(repository: Repository, name: str, arguments: Dict[str, Any]) 
             _text(arguments, "ref"), arguments.get("kind"))]
     if name == "subgraph":
         return compact_subgraph(
-            repository.subgraph(_text(arguments, "ref"), int(arguments.get("depth", 1))),
-            int(arguments.get("tokens", 800)))
+            repository.subgraph(_text(arguments, "ref"), _int(arguments, "depth", 1)),
+            _int(arguments, "tokens", 800))
     if name == "related_findings":
         return compact_related(
             related_findings(repository, _text(arguments, "target"),
-                             int(arguments.get("limit", 10))),
-            int(arguments.get("tokens", 600)))
+                             _int(arguments, "limit", 10)),
+            _int(arguments, "tokens", 600))
     if name == "outline":
-        return outline(repository, int(arguments.get("tokens", 400)))
+        return outline(repository, _int(arguments, "tokens", 400))
     if name == "add_paper":
         paper, created = repository.add_paper(arguments)
         return {"paper": paper.to_dict(), "created": created}
@@ -363,16 +363,16 @@ def dispatch_tool(repository: Repository, name: str, arguments: Dict[str, Any]) 
                                    _text(arguments, "kind"), str(arguments.get("note", "")))
         return {"edge": edge.to_dict()}
     if name == "brief":
-        return brief(repository, _text(arguments, "target"), int(arguments.get("tokens", 2000)))
+        return brief(repository, _text(arguments, "target"), _int(arguments, "tokens", 2000))
     if name == "review":
         return review(repository, _text(arguments, "target"))
     if name == "synthesize":
         return synthesize(
-            repository, _text(arguments, "target"), int(arguments.get("tokens", 2500))
+            repository, _text(arguments, "target"), _int(arguments, "tokens", 2500)
         ).to_dict()
     if name == "analyze_graph":
         auto_link = bool(arguments.get("auto_link", False))
-        limit = int(arguments.get("limit", 10))
+        limit = _int(arguments, "limit", 10)
         related_pairs = find_related_findings(repository)
         related_links = link_related_findings(repository) if auto_link else []
         return {
@@ -426,13 +426,13 @@ def dispatch_tool(repository: Repository, name: str, arguments: Dict[str, Any]) 
             repository,
             _text(arguments, "src"),
             _text(arguments, "dst"),
-            max_depth=int(arguments.get("max_depth", 5)),
+            max_depth=_int(arguments, "max_depth", 5),
             directed=bool(arguments.get("directed", False)),
             edge_kinds=edge_kinds,
         )
     if name == "propose_hypotheses":
         q_ref = arguments.get("question") or arguments.get("target")
-        limit = int(arguments.get("limit", 5))
+        limit = _int(arguments, "limit", 5)
         return propose_hypotheses(repository, question_ref=q_ref, limit=limit)
     if name == "screen_paper":
         from lattice.screening import record_screening_decision
@@ -459,7 +459,10 @@ def dispatch_tool(repository: Repository, name: str, arguments: Dict[str, Any]) 
         targets = arguments.get("targets") or arguments.get("target")
         if isinstance(targets, str):
             targets = [targets]
-        tokens = int(arguments.get("max_tokens", arguments.get("tokens", 2000)))
+        if "max_tokens" in arguments:
+            tokens = _int(arguments, "max_tokens", 2000)
+        else:
+            tokens = _int(arguments, "tokens", 2000)
         fmt = str(arguments.get("format", "markdown"))
         pack = build_context_pack(repository, targets=targets, max_tokens=tokens, format=fmt)
         return pack.to_dict()
@@ -495,6 +498,16 @@ def _text(arguments: Dict[str, Any], name: str) -> str:
     if not isinstance(value, str) or not value.strip():
         raise ValueError(f"argument '{name}' must be a non-empty string")
     return value
+
+
+def _int(arguments: Dict[str, Any], name: str, default: int) -> int:
+    """An optional integer argument that fails with the Error/Why/Fix triad."""
+    try:
+        return int(arguments.get(name, default))
+    except (TypeError, ValueError):
+        fail(f"argument '{name}' with value {arguments.get(name)!r} is not an integer",
+             "tool arguments declare integer fields with numeric defaults",
+             f"pass an integer for '{name}' such as {default}")
 
 
 def _result(request_id: Any, result: Any) -> Dict[str, Any]:

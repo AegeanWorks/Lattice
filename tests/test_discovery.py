@@ -216,6 +216,12 @@ class DiscoveryTests(unittest.TestCase):
         self.assertEqual(second_run["created"], 0)
         self.assertEqual(self.repository.stats()["papers"], 2)
 
+    def test_non_integer_limit_fails_with_lattice_error(self) -> None:
+        service = DiscoveryService(self.repository)
+        for bad in ("x", None, "3.5"):
+            with self.subTest(limit=bad), self.assertRaises(LatticeError):
+                service.discover("sleep", source="offline", limit=bad, ingest=False)
+
 
 if __name__ == "__main__":
     unittest.main()

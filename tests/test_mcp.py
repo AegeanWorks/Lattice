@@ -228,6 +228,15 @@ class McpTests(unittest.TestCase):
                 response = self.call(method, params)
                 self.assertEqual(response["error"]["code"], -32602)
 
+    def test_dispatch_tool_integer_coercion_fails_with_lattice_error(self):
+        for name, arguments in (
+            ("discover_papers", {"query": "sleep", "source": "offline", "limit": "x"}),
+            ("search", {"query": "sleep", "limit": "x"}),
+            ("outline", {"tokens": "x"}),
+        ):
+            with self.subTest(tool=name), self.assertRaises(LatticeError):
+                dispatch_tool(self.repository, name, arguments)
+
     def test_analyze_and_contradictions_tools_and_matrix_resource(self):
         q_resp = json.loads(
             self.tool("add_question", {"text": "Does sleep consolidate memory?"})["result"]["content"][0]["text"]
