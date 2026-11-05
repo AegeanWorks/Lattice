@@ -203,6 +203,16 @@ def normalize_tags(value: str) -> str:
 
 def derive_tags(title: str, abstract: str = "", limit: int = 6) -> str:
     """Derive deterministic keyword tags, weighting title words over abstract words."""
+    if isinstance(limit, bool):
+        fail(f"tag limit {limit!r} is not an integer",
+             "tag derivation needs a numeric limit",
+             "pass an integer limit such as 6")
+    try:
+        count = int(limit)
+    except (TypeError, ValueError):
+        fail(f"tag limit {limit!r} is not an integer",
+             "tag derivation needs a numeric limit",
+             "pass an integer limit such as 6")
     counts: Counter[str] = Counter()
     order: Dict[str, int] = {}
     for source, weight in ((title, 3), (abstract, 1)):
@@ -213,7 +223,7 @@ def derive_tags(title: str, abstract: str = "", limit: int = 6) -> str:
             counts[word] += weight
             order.setdefault(word, len(order))
     ranked = sorted(counts, key=lambda word: (-counts[word], order[word], word))
-    return ", ".join(ranked[:max(0, int(limit))])
+    return ", ".join(ranked[:max(0, count)])
 
 
 def normalize_study_type(value: str) -> str:
@@ -283,7 +293,14 @@ def parse_confidence(value: Optional[float]) -> float:
     """Confidence is a number in [0, 1]; the default is 0.5."""
     if value is None:
         return 0.5
-    number = float(value)
+    if isinstance(value, bool):
+        fail(f"confidence {value!r} is not a number", "confidence is a probability-like weight",
+             "pass a value between 0 and 1")
+    try:
+        number = float(value)
+    except (TypeError, ValueError):
+        fail(f"confidence {value!r} is not a number", "confidence is a probability-like weight",
+             "pass a value between 0 and 1")
     if not 0.0 <= number <= 1.0:
         fail(f"confidence {number} is outside [0, 1]", "confidence is a probability-like weight",
              "pass a value between 0 and 1")

@@ -464,11 +464,24 @@ class DiscoveryService:
         sources = [part.strip() for part in str(source or "offline").split(",") if part.strip()]
         if not sources:
             sources = ["offline"]
+        cleaned = _validate_search_args(query, limit)
+        # Re-validate the count for the final slice so a custom provider that
+        # skips validation cannot leak a raw int()/comparison TypeError.
+        if isinstance(limit, bool):
+            fail(f"limit {limit!r} is not an integer",
+                 "discovery must request a numeric candidate count",
+                 "pass --limit 1 or more")
+        try:
+            count = int(limit)
+        except (TypeError, ValueError):
+            fail(f"limit {limit!r} is not an integer",
+                 "discovery must request a numeric candidate count",
+                 "pass --limit 1 or more")
         raw_candidates: List[PaperCandidate] = []
         for src in sources:
             provider = self.registry.get(src)
-            raw_candidates.extend(provider.search(query, limit=limit))
-        candidates = _dedupe_candidates(raw_candidates)[: int(limit)]
+            raw_candidates.extend(provider.search(cleaned, limit=count))
+        candidates = _dedupe_candidates(raw_candidates)[:count]
         records: List[Dict[str, Any]] = []
         created_count = 0
         for candidate in candidates:
@@ -540,6 +553,10 @@ def _validate_search_args(query: str, limit: int) -> str:
         fail("discovery needs a search query",
              "an empty query cannot be dispatched to a literature catalog",
              "pass a scientific topic or phrase to search")
+    if isinstance(limit, bool):
+        fail(f"limit {limit!r} is not an integer",
+             "discovery must request a numeric candidate count",
+             "pass --limit 1 or more")
     try:
         count = int(limit)
     except (TypeError, ValueError):

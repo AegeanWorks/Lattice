@@ -18,6 +18,19 @@ GROUPS = (("supports", "SUPPORTS"), ("contradicts", "CONTRADICTS"),
 
 def ask(repository: Repository, target: str, limit: int = 20) -> Dict[str, Any]:
     """Return evidence for a question, or matching claims when the target is a search phrase."""
+    if isinstance(limit, bool):
+        fail(f"limit {limit!r} is not an integer",
+             "a result set needs at least one row",
+             "pass --limit 1 or more")
+    try:
+        limit = int(limit)
+    except (TypeError, ValueError):
+        fail(f"limit {limit!r} is not an integer",
+             "a result set needs at least one row",
+             "pass --limit 1 or more")
+    if limit < 1:
+        fail(f"limit {limit} is not positive", "a result set needs at least one row",
+             "pass --limit 1 or more")
     question = _match_question(repository, target)
     if question is not None:
         result = repository.evidence(question.id)
@@ -37,9 +50,20 @@ def ask(repository: Repository, target: str, limit: int = 20) -> Dict[str, Any]:
 
 def brief(repository: Repository, target: str, tokens: int = 2000) -> Dict[str, Any]:
     """Pack the strongest evidence for an agent under a deterministic token budget."""
-    if tokens < 200:
-        fail(f"token budget {tokens} is too small", "a useful brief needs room for evidence",
+    if isinstance(tokens, bool):
+        fail(f"token budget {tokens!r} is not an integer",
+             "a useful brief needs room for evidence",
              "pass --tokens 200 or more")
+    try:
+        budget = int(tokens)
+    except (TypeError, ValueError):
+        fail(f"token budget {tokens!r} is not an integer",
+             "a useful brief needs room for evidence",
+             "pass --tokens 200 or more")
+    if budget < 200:
+        fail(f"token budget {budget} is too small", "a useful brief needs room for evidence",
+             "pass --tokens 200 or more")
+    tokens = budget
     evidence = ask(repository, target)
     lines: List[str] = []
     included: List[Dict[str, Any]] = []
@@ -171,12 +195,13 @@ def _question_header(evidence: Dict[str, Any]) -> List[str]:
 
 
 def _claim_line(item: Dict[str, Any]) -> str:
-    """One evidence line: claim, confidence, quote and source."""
+    """One evidence line: claim, confidence, quote, locator and source."""
     claim = item["claim"]
     paper = claim.get("paper", {})
+    locator = claim.get("locator") or "MISSING"
     return (f"- [{claim['id']}] ({claim.get('confidence', 0.0):.1f}, {item['link']}) "
             f"{claim.get('text', '')} | quote: \"{claim.get('quote', '')}\" | "
-            f"source: {_citation_short(paper)}")
+            f"locator: {locator} | source: {_citation_short(paper)}")
 
 
 def _search_line(claim: Dict[str, Any]) -> str:

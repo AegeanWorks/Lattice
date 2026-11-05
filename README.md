@@ -319,6 +319,7 @@ lattice/
     ├── test_diff.py
     ├── test_discovery.py
     ├── test_extraction.py
+    ├── test_hardening.py
     ├── test_ingest.py
     ├── test_inquiry.py
     ├── test_mcp.py

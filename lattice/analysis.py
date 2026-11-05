@@ -315,7 +315,16 @@ def related_findings(repo: Repository, ref: str, limit: int = 10) -> Dict[str, A
     entity = repo.get(ref)
     resolved = str(entity["ref"])
     kind = entity_type(resolved)
-    cap = max(1, int(limit))
+    if isinstance(limit, bool):
+        fail(f"limit {limit!r} is not an integer",
+             "related findings needs a numeric limit",
+             "pass an integer limit such as 10")
+    try:
+        cap = max(1, int(limit))
+    except (TypeError, ValueError):
+        fail(f"limit {limit!r} is not an integer",
+             "related findings needs a numeric limit",
+             "pass an integer limit such as 10")
     rows = repo.connection.execute(
         "SELECT id, paper_id, text, stance, confidence, locator FROM claims ORDER BY id"
     ).fetchall()
@@ -629,9 +638,9 @@ def find_path(repo: Repository,
       - nodes: list of entity summaries along the path
       - narrative: human-readable explanation of the evidence path
     """
-    if not isinstance(max_depth, int) or max_depth < 1 or max_depth > 10:
+    if isinstance(max_depth, bool) or not isinstance(max_depth, int) or max_depth < 1 or max_depth > 10:
         fail("max_depth must be an integer between 1 and 10",
-             f"received {max_depth}",
+             f"received {max_depth!r}",
              "pass max_depth between 1 and 10")
 
     source_ref = repo._resolve(src)

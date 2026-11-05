@@ -19,7 +19,16 @@ _RESERVE = 40
 
 def _budget(tokens: int) -> int:
     """Validate a token budget and return it as an integer."""
-    value = int(tokens)
+    if isinstance(tokens, bool):
+        fail(f"token budget {tokens!r} is not an integer",
+             "a compact context needs room for handles",
+             f"pass {MIN_TOKENS} tokens or more")
+    try:
+        value = int(tokens)
+    except (TypeError, ValueError):
+        fail(f"token budget {tokens!r} is not an integer",
+             "a compact context needs room for handles",
+             f"pass {MIN_TOKENS} tokens or more")
     if value < MIN_TOKENS:
         fail(f"token budget {value} is too small", "a compact context needs room for handles",
              f"pass {MIN_TOKENS} tokens or more")

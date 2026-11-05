@@ -6,11 +6,11 @@
 ---
 
 ## 📊 Codebase Metrics
-- **Total Python Modules**: `49`
-- **Total Classes**: `65`
+- **Total Python Modules**: `50`
+- **Total Classes**: `66`
 - **Total Top-Level Functions**: `251`
-- **Total Class Methods**: `412`
-- **Total Source Lines**: `15826`
+- **Total Class Methods**: `416`
+- **Total Source Lines**: `16014`
 
 ---
 
@@ -33,7 +33,7 @@
 ### [`lattice/analysis.py`](lattice/analysis.py)
 > *Contradiction detection, related-finding links, keystone ranking and evidence matrices.*
 
-**Size**: `888` lines (`35915` bytes)
+**Size**: `897` lines (`36339` bytes)
 
 **Classes:**
 - `class ContradictionPair` - *An opposing pair of empirical claims sharing a research question or high domain keyword overlap.*
@@ -216,7 +216,7 @@
 ### [`lattice/context.py`](lattice/context.py)
 > *Token-budgeted context views for AI agents: peek, search, expand, drill down.*
 
-**Size**: `540` lines (`21927` bytes)
+**Size**: `549` lines (`22341` bytes)
 
 **Classes:**
 - `class ContextPack` - *Token-budgeted GraphRAG context pack for LLM reasoning and question-answering.*
@@ -272,7 +272,7 @@
 ### [`lattice/discovery.py`](lattice/discovery.py)
 > *Pluggable automated literature discovery: arXiv, Crossref, OpenAlex, EuropePMC, and offline corpus.*
 
-**Size**: `577` lines (`24264` bytes)
+**Size**: `594` lines (`25106` bytes)
 
 **Classes:**
 - `class PaperCandidate` - *Immutable DTO returned by any literature discovery provider.*
@@ -376,7 +376,7 @@
 ### [`lattice/inquiry.py`](lattice/inquiry.py)
 > *Evidence-first question answering: `ask`, token-budgeted `brief` and `review` outlines.*
 
-**Size**: `319` lines (`13564` bytes)
+**Size**: `344` lines (`14612` bytes)
 
 **Functions:**
 - `def ask(repository, target, limit)` - *Return evidence for a question, or matching claims when the target is a search phrase.*
@@ -386,7 +386,7 @@
 - `def _suggestions(repository, question, linked, limit)` - *Unlinked claims whose text matches a keyword from the question.*
 - `def _keywords(text)` - *Distinct lowercase words of at least four letters, without common question words.*
 - `def _question_header(evidence)` - *The fixed header of a question brief.*
-- `def _claim_line(item)` - *One evidence line: claim, confidence, quote and source.*
+- `def _claim_line(item)` - *One evidence line: claim, confidence, quote, locator and source.*
 - `def _search_line(claim)` - *One search hit line with its grounding quote and locator.*
 - `def _suggestion_lines(suggestions)` - *Unlinked claim candidates, one line each (pointers, never evidence).*
 - `def _fits(lines, candidate, tokens)` - *Whether adding one line keeps the estimate under the budget.*
@@ -403,7 +403,7 @@
 ### [`lattice/mcp.py`](lattice/mcp.py)
 > *A dependency-free MCP stdio server exposing the graph as JSON-RPC tools.*
 
-**Size**: `540` lines (`27106` bytes)
+**Size**: `540` lines (`27108` bytes)
 
 **Functions:**
 - `def _tool(name, description, properties, required)` - *An MCP tool declaration with a JSON Schema for its arguments.*
@@ -448,7 +448,7 @@
 ### [`lattice/models.py`](lattice/models.py)
 > *Value objects and the validation rules shared by storage, ingestion and queries.*
 
-**Size**: `349` lines (`12190` bytes)
+**Size**: `366` lines (`12966` bytes)
 
 **Classes:**
 - `class Paper` - *A source record: bibliographic metadata plus its stable identifier.*
@@ -482,7 +482,7 @@
 ### [`lattice/repository.py`](lattice/repository.py)
 > *The knowledge graph API: papers, claims, questions, typed edges and evidence queries.*
 
-**Size**: `643` lines (`31269` bytes)
+**Size**: `674` lines (`32596` bytes)
 
 **Classes:**
 - `class Repository` - *One connection's view of the graph; every write is committed before it returns.*
@@ -900,6 +900,20 @@
   - Method `.test_extract_from_paper_links_related_findings_automatically()`
   - Method `.test_extract_all_processes_every_paper_and_auto_matches_questions()`
   - Method `.test_extract_from_missing_paper_raises_lattice_error()`
+
+---
+
+### [`tests/test_hardening.py`](tests/test_hardening.py)
+> *Wave 21 hardening: bool-safe integer triads and brief provenance.*
+
+**Size**: `80` lines (`3950` bytes)
+
+**Classes:**
+- `class HardeningTests`
+  - Method `.setUp()`
+  - Method `.test_brief_question_mode_carries_locator()`
+  - Method `.test_bool_integers_fail_with_lattice_error()`
+  - Method `.test_string_integers_fail_with_lattice_error()`
 
 ---
 

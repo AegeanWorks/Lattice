@@ -605,3 +605,13 @@ contract, a dependency, a data format or the architecture; IDs are consecutive a
   3. Query layer stays deterministic (existing ORDER BY/sorted order plus new `id` tiebreak in `build_context_pack`); `brief` search lines, `review` search claims, `context pack` markdown and compact views always carry `locator` and label snippets as `snippet_is_quote: False` / `label_is_quote: False` pointers requiring `get_entity` for the verbatim quote.
   4. Studio (minimal, guard-bounded): locator input `required` with client-side guard, claim list and node-detail inspector always render `Locator:` (or `MISSING — fails check`) and the verbatim quote.
 - **Consequences**: No claim enters without a pointer; drifted quotes and rotted `abstract:sN` locators fail `check` instead of silently persisting; agents get identical, fully-grounded answers twice with no snippet-to-quote confusion. Legacy snapshots/DB rows with empty locators now fail loudly on import/`check` and must be re-grounded. Zero dependencies, one SQLite file.
+
+## ADR-032: Brief provenance gap plus bool-safe integer triads (2026-11-05)
+
+- **Status**: Accepted
+- **Context**: Waves 0/10/20 audit plus ADR-031 follow-up found two gaps: `inquiry._claim_line` (question-mode `brief`) omitted `locator` while search-mode lines, review, pack and compact views carried it, breaking quote-plus-locator parity; integer entry points (`context._budget`, `models.parse_confidence`, `models.derive_tags`, `repository.search`, `repository.search_literature`, `repository.subgraph`, `inquiry.brief`, `inquiry.ask`, `discovery.DiscoveryService.discover`, `mcp.get_prompt`, `analysis.find_path`, `analysis.related_findings`, `mcp._int`) leaked raw `int()`/`float()`/`comparison` TypeErrors instead of `LatticeError` Why/Fix, and accepted `bool` (`isinstance(True,int)` is True) as 1.
+- **Decision**:
+  1. `brief` question lines now render `| locator: <locator>` matching search lines; `tests/test_hardening.py` pins `locator: abstract:s1` in question-mode output.
+  2. Every integer/float entry coerces via `try int()/float()` guarded `fail()` with Why/Fix and explicitly rejects `bool`; `DiscoveryService.discover` validates once and reuses the count for provider calls and the final slice so custom providers cannot leak.
+  3. `subgraph` stores the validated count and returns it directly; `search_literature` slices with the validated `limit`; `find_path` rejects `bool` max_depth.
+- **Consequences**: No raw ValueError/TypeError escapes to MCP JSON-RPC or CLI; all bad limits, tokens, depths, confidences and tag limits fail with Error/Why/Fix. Question-mode briefs carry the same provenance as search-mode. 252 unit tests pass, 4/4 `aikit check` gates green.

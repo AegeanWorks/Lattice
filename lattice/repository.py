@@ -217,6 +217,16 @@ class Repository:
         if not value:
             fail("search needs a query", "an empty query would match everything",
                  "pass a word or phrase")
+        if isinstance(limit, bool):
+            fail(f"limit {limit!r} is not an integer",
+                 "a result set needs at least one row",
+                 "pass --limit 1 or more")
+        try:
+            limit = int(limit)
+        except (TypeError, ValueError):
+            fail(f"limit {limit!r} is not an integer",
+                 "a result set needs at least one row",
+                 "pass --limit 1 or more")
         if limit < 1:
             fail(f"limit {limit} is not positive", "a result set needs at least one row",
                  "pass --limit 1 or more")
@@ -235,13 +245,23 @@ class Repository:
         }
 
     def search_literature(self, query: str = "", tags: str = "", study_type: str = "",
-                          year: Optional[str] = None, limit: int = 20) -> Dict[str, Any]:
+                           year: Optional[str] = None, limit: int = 20) -> Dict[str, Any]:
         """Search papers by tags, words, sentences, study type or year."""
         value = " ".join(str(query or "").split())
         tag_filter = [tag for tag in normalize_tags(tags).split(", ") if tag]
         type_filter = normalize_study_type(study_type).lower()
         year_filter = str(year).strip() if year else None
-        if int(limit) < 1:
+        if isinstance(limit, bool):
+            fail(f"limit {limit!r} is not an integer",
+                 "a literature result set needs at least one row",
+                 "pass limit=1 or more")
+        try:
+            limit = int(limit)
+        except (TypeError, ValueError):
+            fail(f"limit {limit!r} is not an integer",
+                 "a literature result set needs at least one row",
+                 "pass limit=1 or more")
+        if limit < 1:
             fail(f"limit {limit} is not positive", "a literature result set needs at least one row",
                  "pass limit=1 or more")
         terms = [term for term in normalize_text(value).split()
@@ -275,7 +295,7 @@ class Repository:
             if score > 0:
                 scored.append((score, -idx, paper))
         scored.sort(key=lambda item: (item[0], item[1]), reverse=True)
-        papers = [item[2] for item in scored[:int(limit)]]
+        papers = [item[2] for item in scored[:limit]]
         return {
             "query": value,
             "tags": ", ".join(tag_filter),
@@ -311,16 +331,27 @@ class Repository:
 
     def subgraph(self, ref: str, depth: int = 1) -> Dict[str, Any]:
         """Return the multi-hop neighborhood of nodes and edges around `ref`."""
-        if int(depth) < 1 or int(depth) > 3:
+        if isinstance(depth, bool):
+            fail(f"subgraph depth {depth!r} is not an integer",
+                 "multi-hop traversal supports depths 1 to 3",
+                 "pass --depth 1, 2 or 3")
+        try:
+            count = int(depth)
+        except (TypeError, ValueError):
+            fail(f"subgraph depth {depth!r} is not an integer",
+                 "multi-hop traversal supports depths 1 to 3",
+                 "pass --depth 1, 2 or 3")
+        if count < 1 or count > 3:
             fail(f"subgraph depth {depth} is out of range",
                  "multi-hop traversal supports depths 1 to 3",
                  "pass --depth 1, 2 or 3")
+        depth = count
         root = self._resolve(ref)
         self._summary(root)
         visited_nodes = {root}
         frontier = {root}
         seen_edges: Dict[int, Dict[str, Any]] = {}
-        for _ in range(int(depth)):
+        for _ in range(depth):
             next_frontier = set()
             for current in sorted(frontier):
                 for edge in self.neighbors(current):
@@ -338,7 +369,7 @@ class Repository:
             node["study_type"] = self._study_type(node_ref)
             nodes.append(node)
         edges = [seen_edges[edge_id] for edge_id in sorted(seen_edges)]
-        return {"root": root, "depth": int(depth), "nodes": nodes, "edges": edges}
+        return {"root": root, "depth": depth, "nodes": nodes, "edges": edges}
 
     def neighbors(self, ref: str, kind: Optional[str] = None) -> List[Edge]:
         """Every edge touching `ref`, optionally narrowed to one kind."""

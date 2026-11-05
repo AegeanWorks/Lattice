@@ -245,12 +245,7 @@ def get_prompt(repository: Repository, name: str,
         fail("prompt 'literature-synthesis' requires 'target'",
              "a synthesis prompt needs a question or search phrase",
              "pass the target argument")
-    try:
-        tokens = int(values.get("tokens", 2500))
-    except (TypeError, ValueError):
-        fail(f"token budget {values.get('tokens')!r} is not an integer",
-             "synthesis needs a numeric token budget",
-             "pass an integer tokens value such as 2500")
+    tokens = _int(values, "tokens", 2500)
     report = synthesize(repository, target, tokens=tokens)
     return {
         "description": f"Scientific literature synthesis for {target}",
@@ -502,10 +497,15 @@ def _text(arguments: Dict[str, Any], name: str) -> str:
 
 def _int(arguments: Dict[str, Any], name: str, default: int) -> int:
     """An optional integer argument that fails with the Error/Why/Fix triad."""
+    raw = arguments.get(name, default)
+    if isinstance(raw, bool):
+        fail(f"argument '{name}' with value {raw!r} is not an integer",
+             "tool arguments declare integer fields with numeric defaults",
+             f"pass an integer for '{name}' such as {default}")
     try:
-        return int(arguments.get(name, default))
+        return int(raw)
     except (TypeError, ValueError):
-        fail(f"argument '{name}' with value {arguments.get(name)!r} is not an integer",
+        fail(f"argument '{name}' with value {raw!r} is not an integer",
              "tool arguments declare integer fields with numeric defaults",
              f"pass an integer for '{name}' such as {default}")
 
