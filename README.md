@@ -9,6 +9,8 @@ A provenance-first research knowledge graph for humans and AI agents. Ingest pap
 claims only with an exact quote and locator, link those claims to research questions, and let
 agents query a deterministic evidence graph instead of a pile of summaries.
 
+> **Archived**: Retired at the user's request after the completed reforge audit and pushed repairs. (archived 2026-11-08). This project is read-only; its GitHub repository is archived.
+
 Lattice is local-first: one SQLite file, the Python standard library, and no network calls.
 
 ## 30-Second Cold-Start Quick Reference
