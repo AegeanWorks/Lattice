@@ -3,57 +3,15 @@
   "active_task": {
     "task_id": "lattice-reforge-stage24-repair",
     "last_phase": "phase 4",
-    "active_phase": 4,
-    "status": "in_progress",
+    "active_phase": 5,
+    "status": "completed",
     "updated_at": 1794086121.0405731,
     "owner": "opencode:reforge-audit",
     "started_by": "opencode:reforge-audit",
-    "continuations": []
+    "continuations": [],
+    "completed_at": 1794086453.9798467
   },
   "checkpoints": [
-    {
-      "task_id": "lattice-meta-v1",
-      "phase": "phase 4",
-      "phase_num": 4,
-      "description": "checklists: passed. Implemented quantitative meta-analysis, fixed/random effects pooling, Cochran's Q, I-squared, and ASCII/SVG forest plots in lattice/meta.py, exposed in api.py, cli.py (lattice meta), client.py, and mcp.py (compute_meta_analysis). Verified 241/241 unit tests, 4/4 gates, and 25/25 dogfood steps.",
-      "files_affected": [],
-      "status": "in_progress",
-      "timestamp": 1792878693.6042163,
-      "timestamp_str": "2026-10-25 00:51:33",
-      "agent": "unidentified"
-    },
-    {
-      "task_id": "lattice-meta-v1",
-      "phase": "completed",
-      "phase_num": 5,
-      "description": "Task 'lattice-meta-v1' completed successfully.",
-      "status": "completed",
-      "timestamp": 1792878698.282482,
-      "timestamp_str": "2026-10-25 00:51:38",
-      "agent": "unidentified"
-    },
-    {
-      "task_id": "reforge:run-1",
-      "phase": "reforge stage 17",
-      "phase_num": 3,
-      "description": "Reforge stage 17: stage 17 host review reviewed; run active; coverage 37/37",
-      "files_affected": [],
-      "status": "in_progress",
-      "timestamp": 1794084715.860791,
-      "timestamp_str": "2026-11-07 23:51:55",
-      "agent": "opencode"
-    },
-    {
-      "task_id": "reforge:run-1",
-      "phase": "reforge stage 18",
-      "phase_num": 3,
-      "description": "Reforge stage 18: stage 18 host review reviewed; run active; coverage 83/83",
-      "files_affected": [],
-      "status": "in_progress",
-      "timestamp": 1794084725.236111,
-      "timestamp_str": "2026-11-07 23:52:05",
-      "agent": "opencode"
-    },
     {
       "task_id": "reforge:run-1",
       "phase": "reforge stage 19",
@@ -235,6 +193,49 @@
       "status": "in_progress",
       "timestamp": 1794086121.0405731,
       "timestamp_str": "2026-11-08 00:15:21",
+      "agent": "opencode:reforge-audit"
+    },
+    {
+      "task_id": "reforge:run-2",
+      "phase": "reforge run",
+      "phase_num": 3,
+      "description": "run started (start=3, step=3, stop=3)",
+      "files_affected": [],
+      "status": "in_progress",
+      "timestamp": 1794086310.9608014,
+      "timestamp_str": "2026-11-08 00:18:30",
+      "agent": "opencode"
+    },
+    {
+      "task_id": "reforge:run-2",
+      "phase": "reforge stage 1",
+      "phase_num": 3,
+      "description": "Reforge stage 1: window 3, 3 commit(s), 20 file(s) reviewed (unreviewed), 0 finding(s), 0 repaired, empty \u2014 nothing to commit",
+      "files_affected": [],
+      "status": "in_progress",
+      "timestamp": 1794086341.7695081,
+      "timestamp_str": "2026-11-08 00:19:01",
+      "agent": "opencode"
+    },
+    {
+      "task_id": "reforge:run-2",
+      "phase": "reforge stage 1",
+      "phase_num": 3,
+      "description": "Reforge stage 1: stage 1 host review reviewed; run completed; coverage 89/89",
+      "files_affected": [],
+      "status": "completed",
+      "timestamp": 1794086426.1155455,
+      "timestamp_str": "2026-11-08 00:20:26",
+      "agent": "opencode"
+    },
+    {
+      "task_id": "lattice-reforge-stage24-repair",
+      "phase": "completed",
+      "phase_num": 5,
+      "description": "Task 'lattice-reforge-stage24-repair' completed successfully.",
+      "status": "completed",
+      "timestamp": 1794086453.9798486,
+      "timestamp_str": "2026-11-08 00:20:53",
       "agent": "opencode:reforge-audit"
     }
   ]
