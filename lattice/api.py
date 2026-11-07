@@ -60,6 +60,7 @@ from lattice.extraction import (
     extract_from_paper,
     infer_confidence,
     infer_stance,
+    sentence_slots,
     split_empirical_sentences,
 )
 from lattice.ingest import (
@@ -344,6 +345,7 @@ __all__ = sorted([
     "review",
     "run_checks",
     "schema_version",
+    "sentence_slots",
     "serve",
     "serve_web",
     "split_empirical_sentences",

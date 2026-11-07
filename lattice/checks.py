@@ -4,6 +4,8 @@ from dataclasses import dataclass, field
 from typing import Dict, List, Set, Tuple
 
 from lattice.database import SCHEMA_VERSION, schema_version
+from lattice.errors import LatticeError
+from lattice.extraction import sentence_slots
 from lattice.models import entity_type, normalize_text
 from lattice.repository import Repository
 
@@ -141,9 +143,7 @@ def _check_locator_resolves(row, report: CheckReport) -> None:
             f"{row['id']} locator {locator!r} is out of range"))
         return
     if source == "abstract":
-        from lattice.extraction import split_empirical_sentences
-        sentences = split_empirical_sentences(str(row["paper_abstract"] or ""))
-        total = len(sentences) if sentences else 1
+        total = sentence_slots(str(row["paper_abstract"] or "")) or 1
         if index > total:
             report.issues.append(CheckIssue(
                 "error", "claim.locator_unresolvable",
@@ -188,7 +188,11 @@ def _check_support_cycles(connection, report: CheckReport) -> None:
     graph: Dict[str, Set[str]] = {}
     for row in rows:
         source, target = row["src"], row["dst"]
-        if entity_type(source) != "claim" or entity_type(target) != "claim":
+        try:
+            if entity_type(source) != "claim" or entity_type(target) != "claim":
+                continue
+        except LatticeError:
+            # `_check_edges` already reports the malformed endpoint; keep checking the rest.
             continue
         graph.setdefault(source, set()).add(target)
     for cycle in _cycles(graph):
@@ -251,6 +255,7 @@ def _check_orphans(connection, report: CheckReport) -> None:
 
 def _exists(connection, ref: str) -> bool:
     """Whether a reference's target row exists."""
+    ref = str(ref or "")
     if ":" not in ref:
         return False
     prefix, identifier = ref.split(":", 1)

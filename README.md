@@ -167,6 +167,8 @@ report = synthesize_question(repository, "q_000001", tokens=1200)
 An empty string or a non-question reference raises `LatticeError`; an empty iterable returns the
 empty selection. `get_hypothesis_evidence(repository, question_id)` returns the evidence grouped
 by role (`supports`, `contradicts`, `answers`, `other`); each item keeps its exact `link` kind.
+`sentence_slots(text)` returns the raw sentence-slot count used by `abstract:sN` locator numbering,
+so a caller can validate a locator before recording a claim.
 The surface re-exports the repository, analysis, synthesis, snapshots, diffing, discovery,
 extraction, ingestion, checks, models, context, database, MCP metadata and dispatch, web assets
 and dispatch, and error contracts.

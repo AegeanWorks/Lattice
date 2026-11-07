@@ -322,7 +322,7 @@ def validate_locator(locator: object) -> str:
     Tier 1 resolvable locators (`abstract`, `abstract:sN`, `text:sN`) are
     verified against the stored paper by `checks`; any other non-empty
     label (page, section, `key_findings`) is attributable but not
-    machine-resolvable (see ADR-030).
+    machine-resolvable (see ADR-031).
     """
     value = " ".join(str(locator or "").split())
     if not value:

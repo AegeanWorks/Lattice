@@ -9,6 +9,34 @@ from lattice.errors import fail
 from lattice.repository import Repository
 
 
+def _as_float(value: object, field: str) -> float:
+    """A numeric study field, or the Error/Why/Fix triad."""
+    if isinstance(value, bool):
+        fail(f"{field} {value!r} is not a number",
+             f"{field} must be a finite numeric value",
+             f"pass {field} as a number such as 0.5")
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        fail(f"{field} {value!r} is not a number",
+             f"{field} must be a finite numeric value",
+             f"pass {field} as a number such as 0.5")
+
+
+def _as_int(value: object, field: str) -> int:
+    """A numeric sample-size field, or the Error/Why/Fix triad."""
+    if isinstance(value, bool):
+        fail(f"{field} {value!r} is not an integer",
+             f"{field} must be a whole-number sample size",
+             f"pass {field} as an integer such as 30")
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        fail(f"{field} {value!r} is not an integer",
+             f"{field} must be a whole-number sample size",
+             f"pass {field} as an integer such as 30")
+
+
 @dataclass(frozen=True)
 class MetaStudy:
     """An individual study effect size and standard error for quantitative pooling."""
@@ -97,19 +125,22 @@ def study_from_confidence_interval(
     study_type: str = "General Study",
 ) -> MetaStudy:
     """Construct a MetaStudy from a point estimate and 95% confidence interval."""
-    if ci_upper < ci_lower:
+    effect = _as_float(effect_size, "effect_size")
+    lower = _as_float(ci_lower, "ci_lower")
+    upper = _as_float(ci_upper, "ci_upper")
+    if upper < lower:
         fail("invalid confidence interval", "ci_upper must be greater than ci_lower",
              "pass valid interval bounds")
-    se = (ci_upper - ci_lower) / (2.0 * 1.959964)
+    se = (upper - lower) / (2.0 * 1.959964)
     if se <= 0:
         se = 1e-6
     return MetaStudy(
         id=str(id).strip(),
         label=str(label).strip() or str(id).strip(),
-        effect_size=round(float(effect_size), 4),
+        effect_size=round(effect, 4),
         se=round(float(se), 4),
-        ci_lower=round(float(ci_lower), 4),
-        ci_upper=round(float(ci_upper), 4),
+        ci_lower=round(lower, 4),
+        ci_upper=round(upper, 4),
         study_type=str(study_type).strip() or "General Study",
     )
 
@@ -126,20 +157,27 @@ def study_from_two_groups(
     study_type: str = "Randomized Controlled Trial",
 ) -> MetaStudy:
     """Compute Hedges' g standardized mean difference from two-arm trial statistics."""
-    if n1 <= 1 or n2 <= 1:
+    count1 = _as_int(n1, "n1")
+    count2 = _as_int(n2, "n2")
+    mean1 = _as_float(m1, "m1")
+    mean2 = _as_float(m2, "m2")
+    spread1 = _as_float(sd1, "sd1")
+    spread2 = _as_float(sd2, "sd2")
+    if count1 <= 1 or count2 <= 1:
         fail("sample size too small", "each arm requires at least 2 participants", "provide n >= 2")
-    if sd1 <= 0 or sd2 <= 0:
+    if spread1 <= 0 or spread2 <= 0:
         fail("invalid standard deviation", "standard deviations must be strictly positive", "provide sd > 0")
 
-    df = n1 + n2 - 2
-    sd_pooled = math.sqrt(((n1 - 1) * (sd1 ** 2) + (n2 - 1) * (sd2 ** 2)) / df)
+    df = count1 + count2 - 2
+    sd_pooled = math.sqrt(((count1 - 1) * (spread1 ** 2)
+                           + (count2 - 1) * (spread2 ** 2)) / df)
     if sd_pooled <= 0:
         sd_pooled = 1e-6
-    cohen_d = (m1 - m2) / sd_pooled
+    cohen_d = (mean1 - mean2) / sd_pooled
     # Hedges small sample correction factor J
-    j_factor = 1.0 - (3.0 / (4.0 * (n1 + n2) - 9.0))
+    j_factor = 1.0 - (3.0 / (4.0 * (count1 + count2) - 9.0))
     hedges_g = cohen_d * j_factor
-    v_g = ((n1 + n2) / (n1 * n2)) + ((hedges_g ** 2) / (2.0 * (n1 + n2)))
+    v_g = ((count1 + count2) / (count1 * count2)) + ((hedges_g ** 2) / (2.0 * (count1 + count2)))
     se_g = math.sqrt(v_g)
     ci_lower = hedges_g - 1.959964 * se_g
     ci_upper = hedges_g + 1.959964 * se_g
@@ -166,30 +204,36 @@ def _coerce_study(item: Union[MetaStudy, Dict[str, Any]]) -> MetaStudy:
     label = str(item.get("label") or item.get("title") or s_id).strip()
     study_type = str(item.get("study_type") or "General Study").strip()
 
-    if "n1" in item and "m1" in item and "sd1" in item:
+    two_group = ("n1", "m1", "sd1", "n2", "m2", "sd2")
+    if any(key in item for key in two_group):
+        missing = [key for key in two_group if key not in item]
+        if missing:
+            fail(f"two-group study is missing {', '.join(missing)}",
+                 "a two-arm study needs both sample sizes, means and standard deviations",
+                 "pass all of n1, m1, sd1, n2, m2 and sd2")
         return study_from_two_groups(
             s_id, label,
-            int(item["n1"]), float(item["m1"]), float(item["sd1"]),
-            int(item["n2"]), float(item["m2"]), float(item["sd2"]),
+            item["n1"], item["m1"], item["sd1"],
+            item["n2"], item["m2"], item["sd2"],
             study_type=study_type,
         )
 
-    effect_size = float(item.get("effect_size", item.get("effect", 0.0)))
+    effect_size = _as_float(item.get("effect_size", item.get("effect", 0.0)), "effect_size")
     if "se" in item:
-        se = float(item["se"])
+        se = _as_float(item["se"], "se")
         if se <= 0:
             se = 1e-6
-        ci_l = float(item.get("ci_lower", effect_size - 1.959964 * se))
-        ci_u = float(item.get("ci_upper", effect_size + 1.959964 * se))
+        ci_l = _as_float(item.get("ci_lower", effect_size - 1.959964 * se), "ci_lower")
+        ci_u = _as_float(item.get("ci_upper", effect_size + 1.959964 * se), "ci_upper")
     elif "ci_lower" in item and "ci_upper" in item:
-        ci_l = float(item["ci_lower"])
-        ci_u = float(item["ci_upper"])
+        ci_l = _as_float(item["ci_lower"], "ci_lower")
+        ci_u = _as_float(item["ci_upper"], "ci_upper")
         se = (ci_u - ci_l) / (2.0 * 1.959964)
         if se <= 0:
             se = 1e-6
     else:
         # Fallback default standard error from confidence score if present
-        conf = float(item.get("confidence", 0.7))
+        conf = _as_float(item.get("confidence", 0.7), "confidence")
         se = max(0.05, round(1.0 - conf * 0.8, 3))
         ci_l = effect_size - 1.959964 * se
         ci_u = effect_size + 1.959964 * se

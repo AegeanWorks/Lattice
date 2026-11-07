@@ -8,9 +8,9 @@
 ## 📊 Codebase Metrics
 - **Total Python Modules**: `50`
 - **Total Classes**: `66`
-- **Total Top-Level Functions**: `251`
-- **Total Class Methods**: `416`
-- **Total Source Lines**: `16014`
+- **Total Top-Level Functions**: `256`
+- **Total Class Methods**: `421`
+- **Total Source Lines**: `16160`
 
 ---
 
@@ -33,7 +33,7 @@
 ### [`lattice/analysis.py`](lattice/analysis.py)
 > *Contradiction detection, related-finding links, keystone ranking and evidence matrices.*
 
-**Size**: `897` lines (`36339` bytes)
+**Size**: `906` lines (`36659` bytes)
 
 **Classes:**
 - `class ContradictionPair` - *An opposing pair of empirical claims sharing a research question or high domain keyword overlap.*
@@ -42,6 +42,7 @@
   - Method `.to_dict()` - *JSON-serializable representation.*
 
 **Functions:**
+- `def _positive_int(value, name)` - *A public count argument that must be a positive integer, or the Error/Why/Fix triad.*
 - `def _domain_keywords(text)` - *Extract informative domain keywords of length >= 4 from claim text.*
 - `def _claim_question_map(repo)` - *Map bare claim IDs to bare question IDs linked via edges.*
 - `def _find_or_create_contradicts_edge(repo, claim_a_id, claim_b_id, auto_link)` - *Return existing `contradicts` edge ID between two claims, or create one when `auto_link` is True.*
@@ -62,7 +63,7 @@
 ### [`lattice/api.py`](lattice/api.py)
 > *Stable public Python surface for host integrations such as neurocore.*
 
-**Size**: `361` lines (`9574` bytes)
+**Size**: `363` lines (`9616` bytes)
 
 **Functions:**
 - `def _question_key(value)` - *Normalize `question:q_000001` or `q_000001` to the bare identifier.*
@@ -74,7 +75,7 @@
 ### [`lattice/checks.py`](lattice/checks.py)
 > *Integrity gate: every citation, endpoint, quote and support cycle is decidable locally.*
 
-**Size**: `267` lines (`10920` bytes)
+**Size**: `272` lines (`11069` bytes)
 
 **Classes:**
 - `class CheckIssue` - *One finding, tagged error or warning and named by a stable code.*
@@ -333,13 +334,15 @@
 ### [`lattice/extraction.py`](lattice/extraction.py)
 > *Automated knowledge creation: extract quote-backed claims and question links from papers.*
 
-**Size**: `222` lines (`8833` bytes)
+**Size**: `232` lines (`9202` bytes)
 
 **Classes:**
 - `class ExtractionResult` - *Immutable summary of claims and edges extracted from a single paper.*
   - Method `.to_dict()` - *JSON-ready representation.*
 
 **Functions:**
+- `def _sentence_parts(text)` - *Raw 1-based sentence slots with abbreviations protected, before evidence filtering.*
+- `def sentence_slots(text)` - *Number of raw sentence slots used by `abstract:sN` and `text:sN` locator numbering.*
 - `def split_empirical_sentences(text, prefix)` - *Split text into `(locator, sentence)` pairs, keeping sentences with empirical findings.*
 - `def infer_stance(sentence)` - *Classify an empirical sentence as `supports`, `contradicts`, or `mentions`.*
 - `def infer_confidence(sentence)` - *Assign a deterministic confidence weight in [0.55, 0.95] from evidential markers.*
@@ -425,7 +428,7 @@
 ### [`lattice/meta.py`](lattice/meta.py)
 > *Quantitative meta-analysis engine: fixed/random effects pooling, Cochran's Q, I-squared, and Forest Plots.*
 
-**Size**: `530` lines (`19953` bytes)
+**Size**: `574` lines (`21869` bytes)
 
 **Classes:**
 - `class MetaStudy` - *An individual study effect size and standard error for quantitative pooling.*
@@ -434,6 +437,8 @@
   - Method `.to_dict()` - *JSON-ready representation.*
 
 **Functions:**
+- `def _as_float(value, field)` - *A numeric study field, or the Error/Why/Fix triad.*
+- `def _as_int(value, field)` - *A numeric sample-size field, or the Error/Why/Fix triad.*
 - `def _chi2_sf(x, df)` - *Survival function (p-value, 1 - CDF) for chi-square distribution with df degrees of freedom.*
 - `def study_from_confidence_interval(id, label, effect_size, ci_lower, ci_upper, study_type)` - *Construct a MetaStudy from a point estimate and 95% confidence interval.*
 - `def study_from_two_groups(id, label, n1, m1, sd1, n2, m2, sd2, study_type)` - *Compute Hedges' g standardized mean difference from two-arm trial statistics.*
@@ -577,7 +582,7 @@
 ### [`lattice/synthesis.py`](lattice/synthesis.py)
 > *Scientific literature synthesis engine: consensus scoring, thematic clustering, and BibTeX.*
 
-**Size**: `319` lines (`13220` bytes)
+**Size**: `330` lines (`13724` bytes)
 
 **Classes:**
 - `class SynthesisReport` - *Immutable structured synthesis for AI agents and human literature reviews.*
@@ -704,7 +709,7 @@
 ### [`tests/test_checks.py`](tests/test_checks.py)
 > *The integrity gate catches broken provenance, endpoints, duplicates and cycles.*
 
-**Size**: `101` lines (`4871` bytes)
+**Size**: `124` lines (`6109` bytes)
 
 **Classes:**
 - `class CheckTests` - *Each test injects one defect into an otherwise clean graph.*
@@ -719,6 +724,8 @@
   - Method `.test_missing_locator_is_an_error()`
   - Method `.test_drifted_quote_is_an_error()`
   - Method `.test_rotted_abstract_locator_is_an_error()`
+  - Method `.test_abstract_locator_after_neutral_sentences_resolves()`
+  - Method `.test_malformed_edge_is_reported_instead_of_raising()`
   - Method `.test_reject_claim_without_locator_at_write_time()`
 
 ---
@@ -889,12 +896,13 @@
 ### [`tests/test_extraction.py`](tests/test_extraction.py)
 > *Tests for automated knowledge creation and claim extraction from ingested papers.*
 
-**Size**: `114` lines (`5305` bytes)
+**Size**: `123` lines (`5798` bytes)
 
 **Classes:**
 - `class ExtractionTests` - *Verify deterministic sentence splitting, stance/confidence scoring, and claim/edge creation.*
   - Method `.setUp()`
   - Method `.test_split_empirical_sentences_handles_abbreviations_and_decimals()`
+  - Method `.test_sentence_slots_counts_raw_slots_before_filtering()`
   - Method `.test_infer_stance_and_confidence()`
   - Method `.test_extract_from_paper_creates_claims_and_links_question()`
   - Method `.test_extract_from_paper_links_related_findings_automatically()`
@@ -906,7 +914,7 @@
 ### [`tests/test_hardening.py`](tests/test_hardening.py)
 > *Wave 21 hardening: bool-safe integer triads and brief provenance.*
 
-**Size**: `80` lines (`3950` bytes)
+**Size**: `113` lines (`5482` bytes)
 
 **Classes:**
 - `class HardeningTests`
@@ -914,6 +922,8 @@
   - Method `.test_brief_question_mode_carries_locator()`
   - Method `.test_bool_integers_fail_with_lattice_error()`
   - Method `.test_string_integers_fail_with_lattice_error()`
+  - Method `.test_remaining_public_limits_fail_with_lattice_error()`
+  - Method `.test_meta_tool_arguments_fail_with_lattice_error()`
 
 ---
 

@@ -141,10 +141,21 @@ def format_bibtex(papers: Sequence[Dict[str, Any]]) -> str:
 
 def synthesize(repository: Repository, target: str, tokens: int = 2500) -> SynthesisReport:
     """Produce a token-bounded, citation-checked scientific synthesis for a question or query."""
-    if int(tokens) < 200:
-        fail(f"token budget {tokens} is too small",
+    if isinstance(tokens, bool):
+        fail(f"token budget {tokens!r} is not an integer",
              "a scientific synthesis requires space for claims, quotes and bibliography",
              "pass --tokens 200 or more")
+    try:
+        budget = int(tokens)
+    except (TypeError, ValueError):
+        fail(f"token budget {tokens!r} is not an integer",
+             "a scientific synthesis requires space for claims, quotes and bibliography",
+             "pass --tokens 200 or more")
+    if budget < 200:
+        fail(f"token budget {budget} is too small",
+             "a scientific synthesis requires space for claims, quotes and bibliography",
+             "pass --tokens 200 or more")
+    tokens = budget
     evidence = ask(repository, target)
     mode = evidence["mode"]
     if mode == "question":

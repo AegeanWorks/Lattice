@@ -2,7 +2,13 @@
 
 import unittest
 
-from lattice.analysis import find_path, related_findings
+from lattice.analysis import (
+    find_path,
+    find_related_findings,
+    propose_hypotheses,
+    rank_influential_entities,
+    related_findings,
+)
 from lattice.context import outline
 from lattice.database import open_database
 from lattice.discovery import DiscoveryService
@@ -11,6 +17,7 @@ from lattice.inquiry import ask, brief
 from lattice.mcp import _int, dispatch_tool, get_prompt
 from lattice.models import derive_tags, parse_confidence
 from lattice.repository import Repository
+from lattice.synthesis import synthesize
 
 
 class HardeningTests(unittest.TestCase):
@@ -74,6 +81,32 @@ class HardeningTests(unittest.TestCase):
         for idx, fn in enumerate(cases):
             with self.subTest(case=idx), self.assertRaises(LatticeError):
                 fn()
+
+    def test_remaining_public_limits_fail_with_lattice_error(self):
+        cases = [
+            lambda: rank_influential_entities(self.repository, limit="abc"),
+            lambda: rank_influential_entities(self.repository, limit=True),
+            lambda: find_related_findings(self.repository, limit_per_claim="abc"),
+            lambda: find_related_findings(self.repository, limit_per_claim=True),
+            lambda: propose_hypotheses(self.repository, limit="abc"),
+            lambda: propose_hypotheses(self.repository, limit=True),
+            lambda: synthesize(self.repository, "sleep", tokens="abc"),
+            lambda: synthesize(self.repository, "sleep", tokens=True),
+        ]
+        for idx, fn in enumerate(cases):
+            with self.subTest(case=idx), self.assertRaises(LatticeError):
+                fn()
+
+    def test_meta_tool_arguments_fail_with_lattice_error(self):
+        cases = [
+            {"studies": [{"effect_size": "abc"}]},
+            {"studies": [{"n1": "x", "m1": 1, "sd1": 1, "n2": 2, "m2": 1, "sd2": 1}]},
+            {"studies": [{"effect_size": 1, "confidence": "high"}]},
+            {"studies": [{"n1": 10, "m1": 1, "sd1": 1}]},
+        ]
+        for idx, arguments in enumerate(cases):
+            with self.subTest(case=idx), self.assertRaises(LatticeError):
+                dispatch_tool(self.repository, "compute_meta_analysis", arguments)
 
 
 if __name__ == "__main__":

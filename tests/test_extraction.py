@@ -11,6 +11,7 @@ from lattice.extraction import (
     extract_from_paper,
     infer_confidence,
     infer_stance,
+    sentence_slots,
     split_empirical_sentences,
 )
 from lattice.repository import Repository
@@ -35,6 +36,14 @@ class ExtractionTests(unittest.TestCase):
         self.assertIn("28.5%", sentences[0][1])
         self.assertEqual(sentences[0][0], "abstract:s2")
         self.assertEqual(sentences[1][0], "abstract:s3")
+
+    def test_sentence_slots_counts_raw_slots_before_filtering(self) -> None:
+        abstract = ("Background. This paper studies sleep. Slow-wave sleep increased recall "
+                    "accuracy by 28% compared with wakeful rest.")
+        self.assertEqual(sentence_slots(abstract), 3)
+        self.assertEqual([locator for locator, _ in split_empirical_sentences(abstract)],
+                         ["abstract:s3"])
+        self.assertEqual(sentence_slots(""), 0)
 
     def test_infer_stance_and_confidence(self) -> None:
         supporting = "Slow-wave sleep increased recall accuracy by 28% compared with wakeful rest."

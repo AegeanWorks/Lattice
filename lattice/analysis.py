@@ -27,6 +27,25 @@ _EXTRA_STOPWORDS = {
 }
 
 
+def _positive_int(value: object, name: str) -> int:
+    """A public count argument that must be a positive integer, or the Error/Why/Fix triad."""
+    if isinstance(value, bool):
+        fail(f"{name} {value!r} is not an integer",
+             f"{name} bounds how many results are returned",
+             f"pass an integer {name} such as 10")
+    try:
+        number = int(value)
+    except (TypeError, ValueError):
+        fail(f"{name} {value!r} is not an integer",
+             f"{name} bounds how many results are returned",
+             f"pass an integer {name} such as 10")
+    if number < 1:
+        fail(f"{name} {number} is not positive",
+             f"{name} bounds how many results are returned",
+             f"pass {name} 1 or more")
+    return number
+
+
 @dataclass(frozen=True)
 class ContradictionPair:
     """An opposing pair of empirical claims sharing a research question or high domain keyword overlap."""
@@ -205,7 +224,7 @@ def find_related_findings(repo: Repository, claim_ids: Optional[Sequence[str]] =
     ``limit_per_claim`` new links. Pairs already joined by any claim-to-claim edge and pairs
     with opposing stances (owned by contradiction detection) are skipped.
     """
-    cap = max(1, int(limit_per_claim))
+    cap = _positive_int(limit_per_claim, "limit_per_claim")
     scope = None if claim_ids is None else {
         bare_id(str(item)) if ":" in str(item) else str(item) for item in claim_ids
     }
@@ -315,16 +334,7 @@ def related_findings(repo: Repository, ref: str, limit: int = 10) -> Dict[str, A
     entity = repo.get(ref)
     resolved = str(entity["ref"])
     kind = entity_type(resolved)
-    if isinstance(limit, bool):
-        fail(f"limit {limit!r} is not an integer",
-             "related findings needs a numeric limit",
-             "pass an integer limit such as 10")
-    try:
-        cap = max(1, int(limit))
-    except (TypeError, ValueError):
-        fail(f"limit {limit!r} is not an integer",
-             "related findings needs a numeric limit",
-             "pass an integer limit such as 10")
+    cap = _positive_int(limit, "limit")
     rows = repo.connection.execute(
         "SELECT id, paper_id, text, stance, confidence, locator FROM claims ORDER BY id"
     ).fetchall()
@@ -434,7 +444,7 @@ def related_findings(repo: Repository, ref: str, limit: int = 10) -> Dict[str, A
 
 def rank_influential_entities(repo: Repository, limit: int = 10) -> Dict[str, List[Dict[str, Any]]]:
     """Rank keystone papers and claims by evidence centrality, citation degree, and confidence."""
-    cap = max(1, int(limit))
+    cap = _positive_int(limit, "limit")
     edge_rows = repo.connection.execute("SELECT src, dst, kind FROM edges").fetchall()
     degree_by_ref: Dict[str, int] = {}
     citations_by_paper: Dict[str, int] = {}
@@ -799,8 +809,7 @@ def propose_hypotheses(repo: Repository,
     For coverage gaps (questions with zero empirical backing):
       Formulates exploratory gap-filling hypotheses with testable variables and designs.
     """
-    if not isinstance(limit, int) or limit < 1:
-        fail("limit must be a positive integer", f"received {limit}", "pass limit 1 or more")
+    limit = _positive_int(limit, "limit")
 
     target_qid = None
     if question_ref:

@@ -45,8 +45,8 @@ class ExtractionResult:
         }
 
 
-def split_empirical_sentences(text: str, prefix: str = "abstract") -> List[Tuple[str, str]]:
-    """Split text into `(locator, sentence)` pairs, keeping sentences with empirical findings."""
+def _sentence_parts(text: str) -> List[Tuple[int, str]]:
+    """Raw 1-based sentence slots with abbreviations protected, before evidence filtering."""
     cleaned = " ".join(str(text or "").split())
     if not cleaned:
         return []
@@ -57,21 +57,31 @@ def split_empirical_sentences(text: str, prefix: str = "abstract") -> List[Tuple
         placeholders[token] = abbr
         protected = re.sub(re.escape(abbr), token, protected, flags=re.IGNORECASE)
     raw_parts = re.split(r"(?<=[.!?])\s+(?=[A-Z0-9])", protected)
-    results: List[Tuple[str, str]] = []
+    parts: List[Tuple[int, str]] = []
     for index, raw in enumerate(raw_parts, start=1):
         restored = raw
         for token, abbr in placeholders.items():
             restored = restored.replace(token, abbr)
-        sentence = restored.strip()
+        parts.append((index, restored.strip()))
+    return parts
+
+
+def sentence_slots(text: str) -> int:
+    """Number of raw sentence slots used by `abstract:sN` and `text:sN` locator numbering."""
+    return len(_sentence_parts(text))
+
+
+def split_empirical_sentences(text: str, prefix: str = "abstract") -> List[Tuple[str, str]]:
+    """Split text into `(locator, sentence)` pairs, keeping sentences with empirical findings."""
+    parts = _sentence_parts(text)
+    results: List[Tuple[str, str]] = []
+    for index, sentence in parts:
         if len(sentence) < 25:
             continue
         if _is_empirical(sentence):
             results.append((f"{prefix}:s{index}", sentence))
-    if not results and len(cleaned) >= 25:
-        first = raw_parts[0]
-        for token, abbr in placeholders.items():
-            first = first.replace(token, abbr)
-        results.append((f"{prefix}:s1", first.strip()))
+    if not results and len(" ".join(str(text or "").split())) >= 25 and parts:
+        results.append((f"{prefix}:s1", parts[0][1]))
     return results
 
 

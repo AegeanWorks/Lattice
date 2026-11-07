@@ -91,6 +91,29 @@ class CheckTests(unittest.TestCase):
         self.assertFalse(report.passed)
         self.assertIn("claim.locator_unresolvable", [issue.code for issue in report.errors])
 
+    def test_abstract_locator_after_neutral_sentences_resolves(self):
+        paper, _ = self.repository.add_paper({
+            "title": "Locator slots",
+            "abstract": ("Background. This paper studies sleep. Slow-wave sleep increased "
+                         "recall accuracy by 28% compared with wakeful rest."),
+        })
+        claim = self.repository.add_claim(
+            paper.id, "Sleep improved recall",
+            "Slow-wave sleep increased recall accuracy by 28% compared with wakeful rest.",
+            locator="abstract:s3")
+        self.repository.add_edge(claim.id, self.question.id, "supports")
+        report = run_checks(self.repository)
+        codes = [issue.code for issue in report.errors]
+        self.assertNotIn("claim.locator_unresolvable", codes, report.to_dict())
+
+    def test_malformed_edge_is_reported_instead_of_raising(self):
+        self.connection.execute(
+            "INSERT INTO edges(src, dst, kind, note, created_at) VALUES(?, ?, ?, '', 'now')",
+            ("garbage", f"question:{self.question.id}", "supports"))
+        report = run_checks(self.repository)
+        self.assertFalse(report.passed)
+        self.assertIn("edge.endpoint", [issue.code for issue in report.errors])
+
     def test_reject_claim_without_locator_at_write_time(self):
         from lattice.errors import LatticeError
         with self.assertRaises(LatticeError):
